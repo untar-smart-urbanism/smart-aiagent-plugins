@@ -1,0 +1,101 @@
+---
+description: Require exact-pinned dependency versions across supported ecosystems (npm, Python) and block new dependencies with OSV vulnerabilities or non-compliant licenses. Enforce Accepted / Accepted-with-Requirement / Forbidden open-source license policy before install.
+alwaysApply: true
+---
+
+# Dependency policy
+
+Before adding **any** npm package, run the `check-dependency` skill or:
+
+```bash
+node plugins/scan-dependency/scripts/check-package.js <name> <version>
+```
+
+## Supported ecosystems
+
+| Ecosystem | Manifest files | OSV ecosystem string | License source |
+|---|---|---|---|
+| npm | `package.json` | `npm` | `npm view <pkg>@<ver> license --json` |
+| Python | `requirements.txt`, `pyproject.toml` | `PyPI` | PyPI JSON API (`https://pypi.org/pypi/<pkg>/<ver>/json`), trove classifiers translated via `data/license-classifier-trove-map.json` |
+
+The OSV ecosystem string for a given manifest is resolved from `data/osv-config.json`'s `ecosystems` map, not hardcoded per call site.
+
+### Adding a new ecosystem
+
+`scripts/ecosystems/index.js`'s `getCapabilities()` derives what an adapter supports from what it exports — nothing to declare or keep in sync by hand. Two tiers:
+
+- **Minimal (OSV-only "simple vulnerability check")**: `id` + `resolveVersion(name, versionArg)` + an entry in `data/osv-config.json`'s `ecosystems` map. Gets a working `check-package.js --ecosystem <id> <name> <version>` immediately — pinning and license checks are reported as "not available for this ecosystem" rather than blocking or crashing.
+- **Full (pinning + OSV + license)**: adds `classify`, `parseManifest`, `policyFile` (pinning — required together, see `npm.js`/`python.js`), and `fetchLicense` (license tiering). Only a full adapter is included in `check-pinned-versions.js`'s whole-tree/auto-detect scan.
+
+Start minimal and fill in the rest later — no framework change is needed either way.
+
+## OSV ([osv.dev](https://osv.dev/))
+
+- Query `https://api.osv.dev/v1/query` for the exact version
+- **Reject** if known vulnerabilities exist — use a fixed version or alternative
+
+## Version pinning (exact versions only)
+
+- **Reject** floating specifiers: caret/tilde (`^1.2.3`, `~1.2.3`), comparator ranges (`>=`, `<=`, `>`, `<`, `||`, hyphen ranges), wildcards (`*`, `1.x`), dist-tags (`latest`, `next`, `beta`, `canary`), or a git/URL ref without a commit SHA.
+- **Accept** a bare exact semver (`4.17.21`) or a git/URL ref pinned to a commit SHA.
+- `file:` local paths and `workspace:` protocol specifiers are exempt from failure (not fetched from the public registry) but are still reported for awareness.
+- Verify: `node plugins/scan-dependency/scripts/check-pinned-versions.js <path>`
+- **Why:** npm supply-chain attacks (event-stream 2018, ua-parser-js 2021) land through auto-resolved floating ranges pulling a newly compromised release at install time. An exact pin means a compromised release sits unused until someone deliberately bumps it — ideally through this same OSV + license gate.
+
+Data: `scan-dependency/data/pinning-policy.json`
+
+## License tiers (company Open Source License Policy)
+
+### Accepted
+
+0BSD · Apache-1.0 · Apache-1.1 · Apache-2.0 · BSD-2-Clause · BSD-3-Clause · BSD-4-Clause · BSL-1.0 · CC0-1.0 · ICU · ISC · JSON · MIT · MIT-0 · PostgreSQL · Python-2.0 · Unlicense · W3C-20150513 · WTFPL · Zlib
+
+Compound `OR` expressions OK only if **every** option is Accepted or Accepted-with-Requirement.
+
+### Accepted with Requirement (document before use)
+
+- **GPL-1.0 / GPL-2.0 / GPL-3.0** (+ -only / -or-later): if distributed, check source obligation
+- **LGPL**: linking only; if modified/distributed, check requirement
+- **EPL**: source obligation on EPL files only
+- **MPL / CDDL**: modified files must follow that license
+- **SSPL-1.0**: backend and unmodified use only
+- **Elastic-2.0**: check license limitations before use
+- **Bare Apache / BSD**: include license notice and attribution
+
+### Forbidden (P0 — reject)
+
+AGPL-1.0 · AGPL-3.0 (all variants) · CC-BY-SA-3.0 · CC-BY-SA-4.0 · Empty License · Unknown · Potentially Commercial · Dynamic License · Proprietary · Non-commercial · UNLICENSED · Unclear license
+
+Data: `scan-dependency/data/allowed-licenses.json`, `conditional-licenses.json`, `forbidden-licenses.json`
+
+## On rejection
+
+Do not run `bun add` / `npm install`. Suggest an alternative package or version that passes OSV and license checks.
+
+## Remediation & ongoing scanning
+
+- **Patch known-vuln versions promptly.** If an existing dependency (direct or transitive) has a
+  known CVE, bump it to the fixed version rather than leaving it pinned — record the CVE and the
+  version bump in the commit/PR so the remediation is auditable.
+- **Continuous scanning is owned by the deployment platform, and it is named.** The deployment platform runs
+  **Trivy** (dependencies, base-image OS packages, image layers, Kubernetes/IaC config, embedded
+  secrets, SBOM) and **SonarQube** (SAST/quality). Trivy's verdicts gate production:
+  **CRITICAL blocks**, **HIGH requires approval**, MEDIUM warns, LOW/UNKNOWN are informational
+  (`SECURITY_GATE_BLOCK_SEVERITIES` / `SECURITY_GATE_APPROVAL_SEVERITIES`). That does **not** remove this per-package gate: still block a new
+  vulnerable/non-compliant package at add-time here, so a bad dependency never reaches the platform
+  scan in the first place.
+- **This gate is deliberately stricter than the platform's.** For a *new* dependency, any OSV
+  vulnerability is a rejection regardless of severity — picking a clean package costs nothing now,
+  whereas Trivy can only tell you later that a CRITICAL is already baked into your image and blocking
+  a release. Do not "align" the add-time rule down to CRITICAL-only.
+- **OSV does not predict the platform's verdict, for two separate reasons.** *Coverage:* OSV covers
+  declared packages; Trivy additionally covers the base image, image layers, manifests, and secrets.
+  *Configuration:* Trivy's scan parameters are **platform-internal and not shared** — we cannot read its
+  flags, its ignore-file, which scanners are enabled, the check-bundle version, or the live gate
+  severity thresholds. So a local result can diverge in **both** directions: the platform may suppress
+  a CRITICAL we flag (unfixed, or ignore-listed), and may flag something we never scan. Never report a
+  clean `scan-deps` as "the security gate will pass", and never report a local CRITICAL as "the gate
+  will block". Attribute local verdicts to this policy, and get the platform's actual state from its
+  own scan results or the platform team.
+- **Prefer a fix over an exception.** Only accept a flagged dependency with a documented,
+  time-boxed rationale and a compensating control — never silently.

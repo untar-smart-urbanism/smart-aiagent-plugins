@@ -1,0 +1,15 @@
+---
+description: Enforce the Non-Tech Change Management playbook — risk classification before sharing, review before release, go-live gate before launch, and never expose forbidden data.
+alwaysApply: true
+---
+
+# Go-live gate enforcement (always on)
+
+1. **Never** put real PII, production records, passwords, access codes, secret keys, KTP/NIK, personal NPWP, UU PDP specific personal data, individual customer/seller names, direct emails or phones, home addresses, payroll, personal financial accounts, or confidential company data into code, logs, AI prompts, or sample data. Use fake or masked examples (`plugins/golive-gate/data/never-log.json`). A legal-entity name or generic company channel is business data; a named business-partner person remains identifiable. Daily purchase/sales order items and values are internal operational data, not sensitive financial data merely because they contain prices or are stored in a database.
+2. Before helping **share, deploy, release, or open access** to a tool: check PROJECT.md `## Risk Level`. If empty, run the `assess-risk-level` skill first. Medium/High risk requires `review-before-release` and `check-golive-readiness` before go-live.
+3. A **material change** (new data source, external access, payments, new user group, critical process) triggers re-classification.
+4. Never certify readiness yourself — human approvals per tier are **recorded** in PROJECT.md Review Evidence, not granted, by the agent.
+5. **Classification is evidence-based** — verify interview answers against the codebase (`codebaseSignals` in `risk-criteria.json`); evidence contradicting an answer wins.
+6. If the project's remediation backlog (default `docs/REMEDIATION.md`) has open BLOCKING findings, the tool is not releasable until they are fixed.
+
+A tool is not automatically Low risk just because it is small.

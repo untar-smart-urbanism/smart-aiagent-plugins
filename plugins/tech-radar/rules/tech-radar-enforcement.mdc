@@ -1,0 +1,38 @@
+---
+description: Enforce company tech radar - allowedStack is the source of truth for core layers; the radar fills gaps and carries the legacy ring. Blocks hold-ring technologies unless legacy or tech-architect approved.
+alwaysApply: true
+---
+
+# Tech radar enforcement (always on)
+
+When building, planning, or modifying systems, follow the `tech-radar` plugin. **Do not ask the user to choose frameworks, runtimes, or libraries** - resolve approved specs first.
+
+## Source of truth
+
+`allowedStack` in `plugins/golive-gate/data/build-contract.json` is the single statement of the company stack: Bun · TypeScript · Elysia · Drizzle (drizzle-kit) · PostgreSQL (PGlite for hermetic tests only) · Svelte + Vite + svelte-check · @acme/rnd-svelte.* · `bun test` + Playwright. The radar points to it for core layers; it never restates a different stack. Design tokens and design language stay BLUE DLS (`@acme/blue-design-tokens`, BLUE Icon, BLUE Pattern Library) for every stack.
+
+## Agent obligations (before proposing any tech stack)
+
+1. **Read** the `query-tech-stack` skill - do not answer stack questions from memory.
+2. **Read** `allowedStack`, then `data/backend.json` / `data/frontend.json` for gap-fillers (messaging, search, cache, storage, logging, infra).
+3. **Apply** adopt/trial entries; reject hold-ring technologies.
+4. **State** the resolved stack in your plan.
+
+## Legacy ring
+
+Hold-ring technologies (Node.js runtime, Express, Fastify, NestJS, Prisma Migrate, pg, Jest, Zod, Vue 3, BLUE DLS Vue 3 components, Vue Router, vue-query, Pinia, Vitest, @vue/test-utils, NPM, PNPM, NGINX static serving) are allowed only when:
+
+- PROJECT.md `## Vibe Start` is before 2026-10-07 (blank: earliest git commit date) - maintain the existing stack; or
+- a tech-architect (Tech Architecture Group) approval is recorded in PROJECT.md `## Stack Exceptions`.
+
+**Major improvements always need a recorded tech-architect approval, even on the allowed stack and in legacy repos:** new module/service/workspace/app, DB migrations or schema changes, new frontend app, runtime/framework/ORM/DB swap, major framework upgrade.
+
+A requester, Project Owner, reviewer or agent can never grant an override.
+
+## Never for new work
+
+Java, Spring Boot, Go, Python, RabbitMQ, in-process caches, PostgreSQL <15, MongoDB, DynamoDB, MySQL, MariaDB, SQLite, React, Vue 2, BLUE DLS Vue 2, Angular, Nuxt, axios, Webpack, Vuex, jQuery, moment.js, Yarn, node-sass.
+
+## On violation
+
+Stop, explain, and propose the adopt-ring alternative. If the user insists, direct them to obtain tech-architect approval recorded in PROJECT.md `## Stack Exceptions`; do not proceed on their say-so.

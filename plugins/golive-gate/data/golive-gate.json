@@ -1,0 +1,250 @@
+{
+  "title": "Go-Live Gate Checklist",
+  "source": "Non-Tech Change Management with AI Assistance Playbook, Section 6 (Go-Live Rules)",
+  "version": "1.12.0",
+  "verdicts": {
+    "READY": "All applicable gate items pass and required approvals are recorded.",
+    "NOT READY": "One or more gate items fail — list the blocking items.",
+    "CONDITIONAL": "Agent-checkable items pass but human approvals are still pending — name the missing approvers."
+  },
+  "items": [
+    {
+      "id": "approvals-complete",
+      "check": "All required approvals for this risk tier are completed and recorded",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "human",
+      "projectMdSection": "Review Evidence",
+      "tierDetail": {
+        "low": "Owner self-check recorded",
+        "medium": "Independent review recorded — playbook: the reviewer is not the builder; operationalized as: the reviewer is neither the Project Owner nor the Support Contact recorded for the project (see review-proof.json independence)",
+        "high": "Formal review by Tech R&D/Architecture, SRE, Information Security, and GRC (as applicable) recorded, AND the formal approval task approved by one of risk-criteria.json tiers[high].formalApproval.approvers (one is enough; neither the Project Owner nor the Support Contact)"
+      },
+      "tierSource": "The tier is the BPT-confirmed level when one is recorded (bpt-risk-confirmed), else the assessed level."
+    },
+    {
+      "id": "bpt-risk-confirmed",
+      "check": "BPT has confirmed the risk level before the required review",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "human",
+      "projectMdSection": "Risk Level",
+      "rule": "risk-criteria.json bptConfirmation: a 'BPT-confirmed: <level> by <login> on <date>' line where <login> is one of bptConfirmation.confirmers (one is enough). The confirmed level may differ from the assessed level in either direction; use it for every tier-dependent item. Missing → CONDITIONAL (human approval pending): request the BPT review quick step in the Alpha Projects Registry once every feature works in staging."
+    },
+    {
+      "id": "triage-review",
+      "check": "If any triage answer (inbound, outbound, mass deployment) is yes, a Tech & Information Security review is recorded; if none, the risks and their mitigations have been explained to the owner and written down",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "human+agent",
+      "projectMdSection": "Change Triage",
+      "rule": "risk-criteria.json triage. Any yes → a Tech & InfoSec review entry in ## Review Evidence (missing → CONDITIONAL). All no → ## Change Triage lists the applicable risk-criteria.json triage.noneRisks with their mitigations (missing → write the list and walk the owner through it; never ask for the manager's identity). Unanswered triage questions → ask the owner now."
+    },
+    {
+      "id": "data-classification-recorded",
+      "check": "## Data Used names the highest data classification level (Confidential / Restricted / Internal / Public) and the handling matches it",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Data Used",
+      "rule": "risk-criteria.json dataClassification. Confidential: encrypted at rest and in transit, owner and granted users only. Restricted: encrypted, masked, or hashed. Internal: stays on company IT. No level, or a name other than these four (e.g. sensitive) → FAIL until rewritten with one of the four."
+    },
+    {
+      "id": "dpia-recorded",
+      "check": "A DPIA is recorded when the tool processes specific personal data under UU PDP",
+      "appliesTo": ["high"],
+      "verify": "human",
+      "projectMdSection": "Data Used",
+      "rule": "risk-criteria.json pdpRules.specific. Any specific personal data → a DPIA reference (document link, date, reviewer) in ## Data Used; missing → CONDITIONAL. No specific personal data → N/A.",
+      "notApplicable": "No specific personal data processed."
+    },
+    {
+      "id": "ai-usage-recorded",
+      "check": "The AI usage record lists the AI tool used, what it did, who checked it, and what was fixed",
+      "appliesTo": ["medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "AI Usage Record",
+      "approvedAiTools": ["Claude Code (company subscription)", "Codex (company ChatGPT subscription)", "Claude Design (company subscription)"],
+      "approvedAiToolsNote": "From the October 2026 procedure (stage 01 prerequisites). Information Security owns the authoritative list; a tool not listed here needs their review and approval first.",
+      "rule": "At least one row with all four columns filled, and every listed tool is approved. Empty → FAIL; an unlisted tool → NEEDS-HUMAN (confirm the approval with Information Security). At Low the record is recommended, not checked."
+    },
+    {
+      "id": "review-lead-time",
+      "check": "The required review started at least 14 days (2 weeks) before the planned production deployment",
+      "appliesTo": ["medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Go-Live Steps",
+      "leadTimeDays": 14,
+      "advisory": true,
+      "rule": "Compare 'Review requested: <date>' with 'Planned production: <date>' in ## Go-Live Steps. Less than 14 days, or either date missing → warn and record NEEDS FOLLOW-UP with the dates; do not block the verdict on it."
+    },
+    {
+      "id": "company-only-access-default",
+      "check": "Access defaults to company-only; external access is stated and justified",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Access Status"
+    },
+    {
+      "id": "sso-login-only",
+      "check": "Login uses company-approved authentication only",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Login Method",
+      "allowed": ["Apps Gateway SSO", "Company Google OAuth"]
+    },
+    {
+      "id": "permissions-defined",
+      "check": "User permissions and access levels are clearly defined (least privilege, not everyone an administrator)",
+      "appliesTo": ["medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Access Levels"
+    },
+    {
+      "id": "approved-platform-only",
+      "check": "Hosted on an approved company platform — no personal or public platforms without formal approval",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "human+agent",
+      "projectMdSection": "Hosting Location"
+    },
+    {
+      "id": "useful-logs-no-secrets",
+      "check": "Useful logs are maintained, and forbidden data never appears in logs",
+      "appliesTo": ["medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Security Notes",
+      "scanFor": "never-log.json"
+    },
+    {
+      "id": "backup-recovery",
+      "check": "SRE-owned backup pipeline or method is identified as a follow-up; application rollback steps are documented separately",
+      "appliesTo": ["medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Recovery Procedures",
+      "advisory": true,
+      "onMissing": "Record NEEDS FOLLOW-UP with SRE as owner and any tracking reference. Do not count this item as FAIL or block the go-live verdict solely for a missing backup pipeline or method."
+    },
+    {
+      "id": "design-document-complete",
+      "check": "Design Document (docs/DESIGN.md) exists and its required views are complete for this risk tier",
+      "appliesTo": ["medium", "high"],
+      "verify": "agent",
+      "docFile": "docs/DESIGN.md",
+      "generatedBy": "project-scaffold:design-document",
+      "tierDetail": {
+        "medium": "Product overview; component + deployment diagram (access/trust boundary: who, from where, network-only vs public, login method); sequence diagrams for main use cases with role differences; API-security cross-references docs/SECURITY.md",
+        "high": "All Medium content plus transaction-flow diagram and a completed Financial Risks section (race conditions; failure model incl. idempotency/retry/compensation; duplicate-transaction detection) — or an explicit owner-confirmed N/A where no financial surface exists"
+      },
+      "notApplicable": "Low risk — the document is still generated by the chained skill but does not block the gate."
+    },
+    {
+      "id": "test-scenario-complete",
+      "check": "Test-case scenarios (docs/TEST-SCENARIO.md) are generated with backing test code, aligned to docs/DESIGN.md, with no failing or stale High/Medium-severity (important/sensitive) scenario",
+      "appliesTo": ["medium", "high"],
+      "verify": "agent",
+      "docFile": "docs/TEST-SCENARIO.md",
+      "generatedBy": "golive-gate:generate-test-scenarios",
+      "severityPolicy": "test-policy.json",
+      "tierDetail": {
+        "medium": "docs/TEST-SCENARIO.md exists, covers the DESIGN.md use-case flows, and has no scenario in FAILED or STALE state among the High/Medium severities (sensitive/important categories) — a FAILED annotated NEEDS-HUMAN (exhausted fix loop) blocks exactly like any FAILED",
+        "high": "All Medium requirements plus every High-severity (sensitive) scenario is PASSED (not PENDING) — hermetic generated suites run automatically by the builder's agent, live/manual checks on the user's go-ahead, human-judgment scenarios verified by the independent reviewer at /vibe-review"
+      },
+      "notApplicable": "Low risk — the scenarios are still generated by the chained skill and this item does not block the gate, but generation, auto-run, and the High-severity fix loop still execute at Low."
+    },
+    {
+      "id": "review-proof-sealed",
+      "check": "A reviewer-sealed proof (docs/REVIEW-PROOF.md) exists for the current commit, verdict PASS, sealed by a reviewer who is neither the Project Owner nor the Support Contact, and is not stale",
+      "appliesTo": ["medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Review Evidence",
+      "docFile": "docs/REVIEW-PROOF.md",
+      "generatedBy": "golive-gate:seal-review-proof",
+      "tierDetail": {
+        "medium": "docs/REVIEW-PROOF.md verdict is PASS; the sealing reviewer is neither the Project Owner nor the Support Contact recorded for the project (independence per review-proof.json — being a repo commit author does NOT disqualify a reviewer and never fails this item); the proof is fresh — git diff --name-only <reviewed-commit>..HEAD lists only docs/REVIEW-PROOF.md, PROJECT.md, and vibe-release.json",
+        "high": "All Medium requirements; the formal Architecture/Tech R&D, SRE, and Information Security sign-offs are separately verified by approvals-complete"
+      },
+      "notApplicable": "Low risk — check-golive-readiness runs seal-review-proof automatically (self-certify); this item does not block the gate at Low."
+    },
+    {
+      "id": "ownership-support-contacts",
+      "check": "Ownership and support contacts are clearly defined, each in its required identity format",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Project Owner / Support Contact",
+      "fields": {
+        "project-owner": {
+          "field": "Project Owner",
+          "format": "github-username",
+          "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$",
+          "normalize": "Compare case-insensitively — GitHub logins are case-insensitive. Record the login exactly as GitHub spells it, with no leading @ and no URL.",
+          "reject": "Free-text person or team names, anything containing a space, an email address, an @-prefixed handle, a profile URL, or a GitHub organization login. An organization is not an accountable person — reject it (gh api users/<login> --jq .type must return User).",
+          "existsCheck": "gh api users/<login> --jq .type — must succeed and return User. A 404 means the login does not exist: reject it as a typo.",
+          "requireOrgMembership": true,
+          "org": "acme-org-ops",
+          "orgSource": "defaultOrg in plugins/ops-github/data/github-policy.json — read it when the ops-github plugin is installed; fall back to the literal above.",
+          "membershipCheck": "gh api -i orgs/<org>/members/<login>. HTTP 204 = member -> CONFIRMED. HTTP 404 = not a member, but ONLY trust that reading when the RUNNING user's own membership in <org> is itself CONFIRMED (only an org member can see private members) -> then FAIL. Any other outcome — gh unauthenticated, 403, network failure, or the running user's own membership unconfirmed — is inconclusive -> UNVERIFIED.",
+          "onUnverified": "Never fail the item on an inconclusive membership check — that would block legitimate owners whose membership is private or whose gh session lacks org scope. Record 'org membership UNVERIFIED (gh could not determine it)', warn, and ask the owner to confirm the login belongs to a acme-org-ops member. Format and existence must still pass."
+        },
+        "support-contact": {
+          "field": "Support Contact",
+          "format": "email",
+          "pattern": "^[^@\\s]+@[^@\\s]+\\.[A-Za-z]{2,}$",
+          "normalize": "lowercase",
+          "reject": "Anything that is not a single well-formed email address — a person's name, a GitHub username, a phone number, a chat handle, or several addresses in one line.",
+          "deniedDomains": [
+            "gmail.com", "googlemail.com", "yahoo.com", "yahoo.co.id", "yahoo.co.uk", "ymail.com",
+            "hotmail.com", "hotmail.co.id", "outlook.com", "live.com", "msn.com", "aol.com",
+            "icloud.com", "me.com", "mac.com", "proton.me", "protonmail.com", "pm.me",
+            "gmx.com", "mail.com", "yandex.com", "zoho.com", "tutanota.com", "rediffmail.com",
+            "qq.com", "163.com", "naver.com"
+          ],
+          "deniedDomainsReason": "Public / free webmail is not company-managed: it survives offboarding, cannot be audited, and is not reachable by IT. FAIL the item and ask for a company mailbox.",
+          "deniedLocalPatterns": [
+            "^alpha\\.lab[0-9]+$",
+            "^[a-z]+\\.lab[0-9]+$",
+            "^(lab|sandbox|demo|test|trial|training|dummy|sample)[0-9._-]*$",
+            "^[a-z]+\\.(sandbox|demo|test|trial|training)[0-9]*$"
+          ],
+          "deniedLocalPatternsReason": "Shared lab / sandbox / numbered group accounts (alpha.lab01, alpha.lab02, ...) are used by whoever is testing at the time — recording one as the support contact means nobody is actually accountable when the tool breaks. FAIL the item and ask for a personal, accountable company mailbox.",
+          "warnLocalPatterns": [
+            "^(helpdesk|servicedesk|service-desk|support|it-support|noreply|no-reply|donotreply|do-not-reply|admin|administrator|info|contact|ops|team)([._-].*)?$"
+          ],
+          "warnLocalPatternsReason": "A role or queue mailbox (ops-helpdesk@, support@) is a legitimate support contact and does NOT fail this item — but it names a queue, not a person. Record it, warn once, and note that a named individual is preferred so escalation has an owner."
+        }
+      },
+      "askIfMissing": "Both fields are owner input — never pick a value for the owner. When a field is empty, holds only the PROJECT.template.md HTML comment, holds a placeholder (TBD / N/A / -), or holds a value that fails its format above, treat it as UNSET and ask now, then rewrite the section and re-verify. For Project Owner: first resolve the running user's GitHub login with 'gh api user --jq .login' and ask directly — 'Is the project owner you (<login>)?' — recording <login> on yes, and asking for the owner's GitHub username on no. When rewriting a legacy free-text value, show the owner the value currently recorded (e.g. 'Merchant Ops team (A. Owner)') and ask which GitHub username it corresponds to; never guess a login from a person's name. If gh is unavailable, ask for the username directly and mark existence + membership UNVERIFIED. Still unanswered after asking → the item FAILs."
+    },
+    {
+      "id": "gcp-label-set",
+      "check": "GCP cost/budget labels assigned — company + division (controlled lists) and department (free text)",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Label",
+      "labels": {
+        "gcp-label-company": { "field": "Company", "allowed": ["acme", "acme-pay", "acme-pa", "acme-ventures", "acme-retail", "acme-travel", "acme-an", "acme-us", "acme-intl", "acme-rise", "acme-gem"] },
+        "gcp-label-div": {
+          "field": "Division",
+          "allowed": ["operations", "finance", "marketing", "commercial"],
+          "onValueNotInList": "Do NOT invent a value, do NOT silently map it onto the nearest allowed one, and do NOT quietly widen the list. FAIL the item, tell the owner exactly which values are allowed, and say plainly that if their real division is genuinely not on the list the list needs extending by GRC / the platform team — the escalation, not a workaround, is the fix. Record the requested value verbatim in the gate record so the escalation has evidence."
+        },
+        "gcp-label-dept": {
+          "field": "Department",
+          "allowed": null,
+          "freeText": true,
+          "normalize": "lowercase, and replace any run of whitespace with a single hyphen",
+          "pattern": "^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$",
+          "maxLength": 63,
+          "patternReason": "The value becomes a Kubernetes cost label, and a label value cannot contain a space \u2014 it must match the Kubernetes charset (alphanumerics, '-', '_', '.', starting and ending alphanumeric, at most 63 characters). 'frontend engineering' is ordinary free text, passes a check that only lowercases, and is an invalid label. Nothing necessarily errors anywhere: the result is silently wrong cost attribution, which is the outcome this item exists to prevent.",
+          "onValueWithSpaces": "Do not fail the owner for writing their department in plain English. Hyphenate it, record the hyphenated form, and tell them what was recorded and why \u2014 the value is going into a Kubernetes label, not a report."
+        }
+      },
+      "labelsNote": "These three values become the company / division / department cost-showback labels on the deployed workload. A wrong value here is silently wrong cost attribution rather than an error — which is exactly why this item asks the owner instead of guessing. Department additionally has to be a valid label value, not merely non-empty: a space makes the label invalid and the attribution silently wrong.",
+      "askIfMissing": "All three labels are owner input, recorded as Company / Division / Department lines under PROJECT.md ## Label. Company must be exactly one allowed sister-company code; Division must be exactly one of operations/finance/marketing/commercial; Department is free text (non-empty), recorded in lowercase — if the owner supplies capitals, lowercase the value before writing it to PROJECT.md. For any missing or invalid value, ask the owner to provide it and record it, then re-verify — never pick a value for the owner. When the owner's division is not on the allowed list, follow gcp-label-div.onValueNotInList: FAIL and escalate, never substitute."
+    },
+    {
+      "id": "remediation-blocking-clear",
+      "check": "No open BLOCKING findings in the remediation backlog (brownfield-adopted projects)",
+      "appliesTo": ["low", "medium", "high"],
+      "verify": "agent",
+      "projectMdSection": "Security Notes",
+      "backlogPolicy": "remediation-tiers.json",
+      "notApplicable": "No remediation backlog exists (project was never brownfield-adopted) — item passes as N/A."
+    }
+  ]
+}

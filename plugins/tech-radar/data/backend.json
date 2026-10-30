@@ -1,0 +1,305 @@
+{
+  "$schema": "../../schemas/tech-radar-entry.schema.json",
+  "stack": "backend",
+  "runtime": "bun",
+  "stackSource": "plugins/golive-gate/data/build-contract.json#allowedStack",
+  "exceptionPolicy": "plugins/golive-gate/data/build-contract.json#stackExceptions",
+  "databasePolicy": "PostgreSQL is mandatory for all persistent application data. Do not use MongoDB, DynamoDB, MySQL, SQLite, or other databases unless a tech-architect approval is recorded in PROJECT.md `## Stack Exceptions`. PGlite is allowed only as the hermetic test database.",
+  "versionPolicy": "Use versions listed in recommendedVersion when present; otherwise use latest stable LTS or major release.",
+  "source": "The core layers (runtime, language, backend, ORM, database, tests) are defined by allowedStack in plugins/golive-gate/data/build-contract.json and are only pointed to here. This radar fills concerns the stack does not cover (messaging, search, cache, storage, logging, infra) and carries the legacy `hold` ring. Adapted from https://github.com/acme-org/tech-radar/blob/main/backend.json; platform and technique rings preserved.",
+  "entries": [
+    {
+      "name": "Bun",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Application runtime and package manager (allowedStack). `bun install --frozen-lockfile`; bun.lock is the lockfile."
+    },
+    {
+      "name": "Elysia",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "HTTP framework on Bun (allowedStack). Typed routes and validation via TypeBox / Eden treaty - no second validator."
+    },
+    {
+      "name": "Drizzle ORM / drizzle-kit",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "description": "ORM and migrations for PostgreSQL (allowedStack). Schema changes are major improvements and need tech-architect approval."
+    },
+    {
+      "name": "PGlite (test only)",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "description": "Hermetic test database only (@electric-sql/pglite). Never for application data."
+    },
+    {
+      "name": "bun test",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Unit test runner (allowedStack). Playwright is the only sanctioned second runner."
+    },
+    {
+      "name": "Node.js",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Bun is the application runtime"
+    },
+    {
+      "name": "TypeScript",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "recommendedVersion": "5.x",
+      "description": "Language for all backend services (allowedStack)."
+    },
+    {
+      "name": "Express",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Elysia is the HTTP framework"
+    },
+    {
+      "name": "Fastify",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Elysia is the HTTP framework"
+    },
+    {
+      "name": "NestJS",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Elysia is the HTTP framework"
+    },
+    {
+      "name": "Java / Spring Boot",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Not allowed for new backend work in this stack. Use Bun + Elysia."
+    },
+    {
+      "name": "Go",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Not allowed for new backend work unless a tech-architect approval is recorded. Use Bun + Elysia."
+    },
+    {
+      "name": "Python (Django/FastAPI)",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Not allowed for new backend work in this stack. Use Bun + Elysia."
+    },
+    {
+      "name": "PostgreSQL 15",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "recommendedVersion": "15",
+      "description": "Mandatory database for all backend services (allowedStack). All persistent data must be stored in PostgreSQL."
+    },
+    {
+      "name": "PostgreSQL 1-14",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Legacy versions — do not use for new databases."
+    },
+    {
+      "name": "MongoDB 6",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "recommendedVersion": "6",
+      "description": "Do not use for new backend work. Use PostgreSQL 15 for all persistent data."
+    },
+    {
+      "name": "MongoDB 1-5",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Legacy versions — do not use. Use PostgreSQL 15."
+    },
+    {
+      "name": "AWS DynamoDB",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Do not use for new backend work. Use PostgreSQL 15 for persistent data."
+    },
+    {
+      "name": "MySQL / MariaDB",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Do not use for new backend work. Use PostgreSQL 15."
+    },
+    {
+      "name": "SQLite",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Do not use for production services. Use PostgreSQL 15."
+    },
+    {
+      "name": "OpenSearch 2",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "recommendedVersion": "2",
+      "description": "Search and analytics datastore."
+    },
+    {
+      "name": "Elasticsearch 1-8",
+      "ring": "trial",
+      "quadrant": "Platforms",
+      "description": "Prefer OpenSearch 2 for new search workloads."
+    },
+    {
+      "name": "Memcached",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Distributed cache for backend services. Do not use in-process caches."
+    },
+    {
+      "name": "Redis (standalone)",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Prefer Memcached or managed cache unless a specific Redis feature is required."
+    },
+    {
+      "name": "Kafka",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Event streaming and async integration between services."
+    },
+    {
+      "name": "RabbitMQ",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Do not use for new messaging workloads — use Kafka."
+    },
+    {
+      "name": "Consul",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Service discovery and application configuration."
+    },
+    {
+      "name": "Vault",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Secrets and sensitive configuration."
+    },
+    {
+      "name": "Docker",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Package backend services as container images."
+    },
+    {
+      "name": "Kubernetes",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Container orchestration for deployed services."
+    },
+    {
+      "name": "Google Cloud Storage (GCS)",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Application object/file storage. Use gcs-implementations plugin — project/bucket via env, folders app-decided, GKE WIF auth (no key files)."
+    },
+    {
+      "name": "AWS S3",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Do not use for new company app object storage — use GCS (gcs-implementations)."
+    },
+    {
+      "name": "Azure Blob Storage",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Do not use for new company app object storage — use GCS (gcs-implementations)."
+    },
+    {
+      "name": "@google-cloud/storage",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "description": "Official JS client for GCS (works on Bun). On GKE use Workload Identity Federation - omit keyFilename (see gcs-implementations)."
+    },
+    {
+      "name": "Jenkins",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "CI/CD automation server."
+    },
+    {
+      "name": "Pino",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "recommendedVersion": "9.x",
+      "description": "Structured logging for Bun/TypeScript services (gap-filler: logging)."
+    },
+    {
+      "name": "Jest",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use bun test"
+    },
+    {
+      "name": "Zod",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Elysia uses TypeBox for validation"
+    },
+    {
+      "name": "OpenAPI Spec (OAS)",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "description": "API contract standard for REST services."
+    },
+    {
+      "name": "Prisma Migrate",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use Drizzle (drizzle-kit)"
+    },
+    {
+      "name": "node-postgres (pg)",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use the postgres driver through Drizzle"
+    },
+    {
+      "name": "Microservices Architecture",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Preferred architecture for new backend systems."
+    },
+    {
+      "name": "Monolith Architecture",
+      "ring": "hold",
+      "quadrant": "Techniques",
+      "description": "Avoid for new large systems unless scope is intentionally small."
+    },
+    {
+      "name": "Event-Driven Architecture",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Use Kafka for async workflows and service decoupling."
+    },
+    {
+      "name": "API Gateway",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Central ingress for external and cross-squad traffic."
+    },
+    {
+      "name": "Circuit Breaker",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Required for outbound calls to unstable dependencies."
+    },
+    {
+      "name": "CQRS",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Separate read and write models where query complexity warrants it."
+    },
+    {
+      "name": "Distributed Tracing",
+      "ring": "trial",
+      "quadrant": "Techniques",
+      "description": "Adopt for observability on multi-service flows."
+    }
+  ]
+}

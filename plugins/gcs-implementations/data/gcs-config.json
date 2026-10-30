@@ -1,0 +1,56 @@
+{
+  "version": "1.1.0",
+  "storageProvider": "Google Cloud Storage",
+  "mandatory": true,
+  "description": "Company standard for application object/file storage. Use GCS — not local disk for persistent uploads, not AWS S3, not Azure Blob for new work.",
+  "references": [
+    "https://cloud.google.com/storage/docs",
+    "https://cloud.google.com/storage/docs/json_api/v1/objects",
+    "https://googleapis.dev/nodejs/storage/latest/"
+  ],
+  "urls": {
+    "console": "https://console.cloud.google.com/storage",
+    "docs": "https://cloud.google.com/storage/docs",
+    "objectHttp": "https://storage.googleapis.com/{bucket}/{object}",
+    "gsUri": "gs://{bucket}/{object}",
+    "nodeSdk": "https://cloud.google.com/nodejs/docs/reference/storage/latest"
+  },
+  "project": {
+    "envVar": "GCS_PROJECT_ID",
+    "description": "GCP project ID that owns the buckets. Required in .env / .env.example (no secrets).",
+    "notes": "Use the application or shared platform GCP project agreed for this environment (dev/stg/prod)."
+  },
+  "buckets": {
+    "envVar": "GCS_BUCKET",
+    "policy": "Use a single bucket env var GCS_BUCKET. Do not hardcode the bucket name in source. Document it in .env.example with a placeholder value only."
+  },
+  "folders": {
+    "envVar": "GCS_FOLDER",
+    "policy": "default-inside-bucket",
+    "required": true,
+    "default": "{app_id}",
+    "defaultRationale": "The deployment platform provisions object storage with the folder {appname}/ inside the bucket. Defaulting GCS_FOLDER to the application id — the git remote's repo name, the same value the platform uses — makes the app's own object keys agree with the layout the platform actually created. A mismatch is not an error the platform reports; it just silently writes outside the provisioned prefix.",
+    "description": "GCS_FOLDER is the default folder (object-key prefix) inside GCS_BUCKET where the app stores files. Objects live under gs://{GCS_BUCKET}/{GCS_FOLDER}/... by default. The app may append further sub-paths within that folder.",
+    "guidance": [
+      "Always set GCS_FOLDER — it is the default storage location inside the bucket",
+      "Default it to the application id (the git remote's repo name), matching the {appname}/ folder the platform provisions; only diverge when the user has a stated reason, and say what the platform provisioned",
+      "Compose object keys as `${GCS_FOLDER}/${filename}` or `${GCS_FOLDER}/${subPath}/${filename}`",
+      "Do not store app files at the bucket root; use GCS_FOLDER as the base path",
+      "Never put secrets in object paths",
+      "Sanitize user-controlled path segments (no .., no absolute paths)"
+    ]
+  },
+  "auth": {
+    "mandatory": "Workload Identity Federation (WIF) on GKE",
+    "forbidden": [
+      "Long-lived service account JSON key files in the repo or Secret as mounted key",
+      "Hardcoded credentials",
+      "Passing keyFilename / credentials JSON to Storage in production GKE"
+    ],
+    "see": "data/wif-gke.json"
+  },
+  "nodeLibrary": {
+    "package": "@google-cloud/storage",
+    "notes": "Authenticate via Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS or workload identity). Use a lazily-created Storage singleton cached on globalThis to avoid leaking clients across hot reloads (mirrors db.ts). On GKE with WIF, omit keyFilename and leave GOOGLE_APPLICATION_CREDENTIALS unset. See templates/gcs-client.ts and data/wif-gke.json."
+  }
+}

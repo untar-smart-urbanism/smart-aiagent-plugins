@@ -1,0 +1,19 @@
+{
+  "name": "code-review",
+  "displayName": "Code Review",
+  "version": "1.10.0",
+  "description": "OWASP secure coding applied on every prompt automatically, plus GRC-informed design patterns (apply-security-patterns) for sensitive-data, auth, secret, and container/Pod hardening. /review-code and /audit-security for manual checks on existing projects.",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "category": "developer-tools",
+  "keywords": ["owasp", "secure-coding", "code-review", "security", "checklist", "grc", "encryption", "pii", "secrets", "security-patterns", "trivy", "container-hardening"],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "commands": "./commands/",
+  "rules": "./rules/"
+}

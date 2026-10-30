@@ -1,0 +1,38 @@
+{
+  "title": "Trusted Automation Identity Registry",
+  "source": "Org security policy — committer provenance for code-review /audit-security",
+  "version": "1.2.0",
+  "purpose": "Names the non-human committer identities the org has explicitly approved, and the scope each is trusted to act in. The registry scopes identity findings only — it never exempts commit content from checklist evaluation.",
+  "spoofabilityCaveat": "Git author/committer identity is attestation-grade evidence: a determined actor could spoof it by editing git config. Registry membership therefore narrows the identity finding, never the content review. Signed-commit verification is deferred future work.",
+  "scopeRule": "A commit by a registered identity is in scope only if ALL hold: (1) every file the commit touches matches at least one authorizedPaths glob, (2) no touched file matches a neverAuthorized glob (deny overrides allow), and (3) the change plausibly matches an authorizedActivity entry. Otherwise the commit is out of scope.",
+  "classification": {
+    "registeredInScope": "Expected automation. Not a finding — report as an informational provenance note in the audit summary.",
+    "registeredInScopeAnomaly": "Unusual churn within authorized scope (e.g. repeated add/remove cycles of the same change) → should-fix hygiene finding; never blocks on its own.",
+    "registeredOutOfScope": "must-fix — possible misconfiguration or identity misuse. Quote the out-of-scope commits and the paths that violated scope.",
+    "unregisteredAutomation": "must-fix — non-human identity with unreviewed direct-push history and no registry entry (unchanged pre-registry behavior). Indicators: bot/ai/ci/automation naming, machine-generated commit messages, high-frequency direct pushes with no PR trail.",
+    "human": "Not covered by this registry — human review-bypass concerns are a golive-gate matter."
+  },
+  "matchRule": "Match on emails only — exact, case-insensitive, against both the author and committer fields (git log --all --format='%ae %ce'). Never match by display name alone, and never use domain wildcards.",
+  "registrationPolicy": "Register or change an identity by PR to this marketplace repo — plugins-team review required. Scope changes are made by editing this file, never ad hoc during an audit.",
+  "platformOnboardingCommit": "Platform onboarding may commit integration source, a health route, .env.example, and DEVOPS_INTEGRATION.md to the application repo. The git identity used for that commit is not documented. Do not assume it is devops-ai@platform.local merely because this identity may edit source. Classify the observed author/committer by exact email; if unregistered, report unregistered automation and ask the platform team to identify it. Review onboarding content normally in all cases.",
+  "identities": [
+    {
+      "name": "DevOps Platform AI",
+      "emails": ["devops-ai@platform.local"],
+      "type": "ci-cd",
+      "operator": "IT Teams deployment/platform automation",
+      "authorizedActivity": [
+        "Production deployments: update deployment files and deployment config only as part of an approved production promotion. The platform's own gate governs this — SonarQube Quality Gate OK, Trivy production config+image summaries with no CRITICAL, RBAC, and an approved human approval task (appv-...). Do NOT expect a vibe-release.json release-gate-status value to authorize the commit: the platform does not read that field",
+        "Staging / non-production deployments: update deployment files and deployment config with no approval task required — staging auto-syncs",
+        "Version bumps and release chores: SemVer version fields, lockfile metadata, changelog entries, regenerated release docs",
+        "Repository implementation and maintenance: source code, tests, documentation, plugin content, and configuration changes in company repositories. Treat this identity as an expected internal contributor for provenance review; inspect every change for security, quality, and normal approval requirements."
+      ],
+      "pathNote": "On the deployment platform, GitOps manifests live in a SEPARATE repo — deployment-<app> under acme-org-ops, at apps/<app>/<env>/ — and Argo CD syncs from there, not from the application repo. The k8s/helm/charts/infrastructure globs below therefore apply to a deployment repo checkout or to a project that predates the two-repo model; in an onboarded application repo they should normally see no commits at all. Treat manifest commits landing in the application repo as worth a look, not as automatically expected.",
+      "authorizedPaths": ["**"],
+      "neverAuthorized": [".github/workflows/**"],
+      "approvedBy": "Initial registry entry: alpha.lab01@example.com (plugin suite owner); repository-wide implementation scope requested by the user in chat on 2026-09-26",
+      "approvedOn": "2026-07-16 (initial entry); 2026-09-26 (scope update)",
+      "notes": "The 2026-09-26 owner-requested scope expansion permits repository code changes as expected automation, but never treats an email string as proof of authorization. The identity never acts as the sealing reviewer, Project Owner, Support Contact, or formal approver. If a deployment change's environment is ambiguous, audit it under the production condition. GitHub Actions workflows remain out of scope because the platform's CI pipeline owns CI for onboarded apps; do not infer that all existing workflows are malicious. The registry only scopes provenance findings; content and approval checks still apply."
+    }
+  ]
+}

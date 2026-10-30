@@ -1,0 +1,56 @@
+{
+  "version": "1.1.0",
+  "description": "Environment variables for GCS configuration. Real values only in local .env (gitignored) or secret manager / deploy config. Placeholders in .env.example.",
+  "requiredWhenUsingGcs": [
+    {
+      "name": "GCS_PROJECT_ID",
+      "example": "my-gcp-project",
+      "secret": false,
+      "description": "GCP project ID that owns the bucket"
+    },
+    {
+      "name": "GCS_BUCKET",
+      "example": "myapp-storage-dev",
+      "secret": false,
+      "description": "GCS bucket name for application object/file storage"
+    },
+    {
+      "name": "GCS_FOLDER",
+      "example": "myapp",
+      "default": "{app_id} — the application id (git remote repo name), matching the {appname}/ folder the deployment platform provisions",
+      "secret": false,
+      "description": "Default folder (object-key prefix) inside the bucket where the app stores files. All uploads go under this folder by default (e.g. gs://GCS_BUCKET/GCS_FOLDER/...). Default it to the application id so the app's object keys agree with the platform-provisioned layout."
+    }
+  ],
+  "optionalWifDocs": [
+    {
+      "name": "GCS_GSA_EMAIL",
+      "example": "myapp-gcs@my-gcp-project.iam.gserviceaccount.com",
+      "secret": false,
+      "description": "Document the GSA used with WIF (not a credential; for ops clarity)"
+    },
+    {
+      "name": "GCS_KSA_NAME",
+      "example": "myapp-ksa",
+      "secret": false,
+      "description": "Kubernetes ServiceAccount name annotated for WIF"
+    }
+  ],
+  "localAuthOnly": [
+    {
+      "name": "GOOGLE_APPLICATION_CREDENTIALS",
+      "example": "/path/to/adc.json",
+      "secret": true,
+      "description": "Local/dev only path for ADC key or ADC file. Leave unset on GKE so workload identity supplies credentials. Never commit the file."
+    }
+  ],
+  "rules": [
+    "Never commit real .env files",
+    "Always update .env.example when adding GCS_PROJECT_ID, GCS_BUCKET, or GCS_FOLDER",
+    "Use a single GCS_BUCKET — do not invent GCS_BUCKET_UPLOADS / PUBLIC / TEMP unless the user explicitly needs multiple buckets",
+    "GCS_FOLDER is the default folder inside the bucket; store files under it (apps may append further sub-paths within that folder)",
+    "Default GCS_FOLDER to the application id — the deployment platform provisions the bucket with an {appname}/ folder, and a different prefix silently writes outside it",
+    "Auth via Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS or workload identity); Storage client is a lazy singleton on globalThis",
+    "Do not put service account private keys in env vars; do not set GOOGLE_APPLICATION_CREDENTIALS on GKE when using WIF"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "title": "Company SonarQube Platform Defaults",
+  "source": "Company SonarQube server configuration — platform-default quality gate (documented defaults).",
+  "version": "1.1.0",
+  "purpose": "Platform-specific defaults so the skill talks to the company server with the right project key, the right scope, and the right expectations. Read this instead of assuming a generic SonarQube setup.",
+  "server": {
+    "url": "https://sonarqube-ops.acme.example",
+    "useAsDefault": true,
+    "note": "Used when neither --url nor SONARQUBE_URL is provided. An explicit value always wins, so the skill still works against any other server or SonarCloud.",
+    "authNote": "This server has authentication disabled — SONARQUBE_TOKEN is optional. Do not fail when it is unset."
+  },
+  "edition": {
+    "name": "Community Build",
+    "supportsBranchAnalysis": false,
+    "supportsPullRequestAnalysis": false,
+    "implication": "Only the default branch (main/master) is analysed. Querying a pullRequest or a non-default branch scope returns nothing useful, so the skill MUST force default-branch scope on this server and say why. There is no PR decoration to wait for.",
+    "consequenceForDevelopers": "A feature branch gets NO gate feedback from the server. Running this skill locally before merging is the only way to find out what main will say — treat it as a pre-merge step, not just a post-failure one.",
+    "upgradePath": "Native PR decoration and branch analysis require a paid edition."
+  },
+  "projectKey": {
+    "pattern": "acme:<app>",
+    "appNameSource": "The platform application id — normally the repository name. Derive it from the git remote's repo name, else the working-tree directory name.",
+    "precedence": "On the platform server, acme:<app> is tried FIRST. An explicit --project always wins, and a sonar-project.properties sonar.projectKey in the repo wins over the derived value because the pipeline would have used it. Off-platform, the existing detection chain (sonar-project.properties -> pom.xml -> package.json -> directory name) is unchanged.",
+    "registeredBy": "The platform at onboarding. Missing project -> ask the platform team to register it."
+  },
+  "qualityGate": {
+    "name": "platform-default",
+    "assignedAutomatically": true,
+    "cannotBeWeakened": "Application users cannot modify quality profiles or gates; platform admins own global policy. Never advise disabling sonar-enabled or loosening a condition to get a build out.",
+    "conditions": [
+      { "metric": "bugs", "op": "GT", "error": 0, "meaning": "Any bug fails the gate" },
+      { "metric": "vulnerabilities", "op": "GT", "error": 0, "meaning": "Any vulnerability fails the gate" },
+      { "metric": "coverage", "op": "LT", "error": 70, "meaning": "Coverage must be >= 70%" },
+      { "metric": "duplicated_lines_density", "op": "GT", "error": 3, "meaning": "Duplication must be <= 3%" },
+      { "metric": "sqale_rating", "op": "GT", "error": 2, "meaning": "Maintainability must be A or B" },
+      { "metric": "reliability_rating", "op": "GT", "error": 2, "meaning": "Reliability must be A or B" },
+      { "metric": "security_rating", "op": "GT", "error": 2, "meaning": "Security must be A or B" }
+    ],
+    "ratingScale": "1=A, 2=B, 3=C, 4=D, 5=E — maximum allowed is 2 (B)",
+    "configurableDefaults": {
+      "SONAR_QG_COVERAGE_MIN": 70,
+      "SONAR_QG_DUPLICATION_MAX": 3,
+      "SONAR_QG_RATINGS_MAX": 2
+    },
+    "thresholdAuthority": "These are the platform defaults, recorded so the skill can explain and pre-check them offline. The SERVER's own gate definition is still authoritative at runtime — report the thresholds the API returns, and only fall back to these when the API cannot be reached."
+  },
+  "pipelineEffect": {
+    "analysisStage": "The CI pipeline's Sonar analysis runs on push to the default branch when sonar-enabled=true (default), before the image build",
+    "gateFailure": "A failed gate can stop the CI pipeline before the image build, while a soft staging mode (SONAR_QG_SOFT_STAGING) can allow a staging image with recommendations. Inspect the actual pipeline run before declaring the staging outcome.",
+    "productionGate": "Production promotion requires Quality Gate OK regardless of staging soft-gate behavior."
+  },
+  "fixGuidance": {
+    "order": "Fix vulnerabilities before bugs when both appear, then coverage, then duplication, then the ratings (platform best practice).",
+    "byCondition": {
+      "bugs": "Open the fetched findings or the Sonar UI; fix, or refute a false positive with a justified code change — never by muting the rule",
+      "vulnerabilities": "Patch the vulnerable pattern, upgrade the unsafe API, add validation",
+      "coverage": "Add unit/integration tests for critical paths, and make sure CI actually produces the coverage report — a missing report reads as low coverage",
+      "duplicated_lines_density": "Extract shared modules; delete dead copies",
+      "sqale_rating": "Reduce code smells; simplify complex methods",
+      "reliability_rating": "Work down the bug backlog",
+      "security_rating": "Close security hotspots and fix vulnerabilities"
+    },
+    "antiPatterns": [
+      "Disabling sonar-enabled to get a build out",
+      "Writing assertion-free tests to lift coverage",
+      "Muting or downgrading a rule instead of fixing the finding"
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "../../schemas/code-structure.schema.json",
+  "stack": "svelte-typescript",
+  "stackSource": "plugins/golive-gate/data/build-contract.json allowedStack",
+  "root": "apps/frontend/src",
+  "directories": {
+    "lib": "Frontend library code, imported through the $lib alias",
+    "lib/components": "Shared reusable UI: thin wrappers and compositions over @acme/rnd-svelte.* components",
+    "lib/features": "Business logic and feature modules (one folder per feature)",
+    "lib/stores": "Global client state (Svelte stores or runes-based .svelte.ts modules) — one state mechanism only",
+    "lib/layouts": "Page layout wrappers",
+    "lib/utils": "Frontend-only utilities",
+    "lib/types": "Frontend-only types (shared types go in packages/shared-types)",
+    "api": "Eden treaty client (typed from the backend `App` type) and thin API helpers — the only place that calls the backend",
+    "pages": "Route-level page composition (or routes/ when a router library uses file-based routing)"
+  },
+  "entryFiles": {
+    "main.ts": "Mounts App.svelte",
+    "App.svelte": "App shell, router setup",
+    "app.d.ts": "Ambient declarations (e.g. wildcard module for @acme/rnd-svelte.* which ships no .d.ts)"
+  },
+  "naming": {
+    "components": "PascalCase .svelte files (OrderTable.svelte)",
+    "stateModules": "camelCase .svelte.ts for runes state (orders.svelte.ts) or camelCase .ts for stores",
+    "other": "camelCase .ts"
+  },
+  "requirements": [
+    "Svelte + TypeScript bundled with Vite (`<script lang=\"ts\">`) — no other UI framework",
+    "UI components come from @acme/rnd-svelte.*, themed with @acme/blue-design-tokens; never hand-roll colours, spacing or type scales that BLUE DLS defines",
+    "One client-state mechanism (Svelte stores or runes) — do not add a second state manager",
+    "Business logic belongs in lib/features/, not in pages/ or lib/components/",
+    "API calls belong in api/ (Eden treaty client) — components never call fetch directly",
+    "Global state belongs in lib/stores/",
+    "Shared UI belongs in lib/components/",
+    "Pages compose features and components only",
+    "No .svelte file may exceed 300 lines — split into smaller components or extract logic to .ts modules"
+  ],
+  "legacy": "Projects with Vibe Start before 2026-10-07 may keep their existing frontend (React or Vue with app/features/components/hooks/services/store/layouts/pages layout). Audit them against their existing structure as advisory; do not convert. Adding a frontend app or replacing the frontend is a major improvement and needs tech-architect approval in PROJECT.md `## Stack Exceptions`."
+}

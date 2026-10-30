@@ -1,0 +1,28 @@
+---
+description: OWASP checklist — frontend-specific (XSS, output encoding, sensitive data).
+alwaysApply: false
+globs:
+  - "apps/frontend/**"
+  - "**/apps/frontend/**"
+---
+
+# OWASP — frontend
+
+When editing Svelte code (legacy projects: React/Vue equivalents), enforce from `code-review/data/owasp-checklist.json`:
+
+- Treat all API/user content as untrusted before rendering
+- No `{@html}` with untrusted content without sanitization (DOMPurify); legacy React: no `dangerouslySetInnerHTML`, legacy Vue: no `v-html`
+- No secrets, tokens, or connection strings in frontend bundle
+- Sensitive data only via HTTPS; use `window.fetch` with credentials policy
+- No sensitive data in URL query strings or localStorage unless encrypted
+- Disable autocomplete on login/password fields
+- Client validation is UX only — server must re-validate
+
+## When the UI shows sensitive data (also see `apply-security-patterns`)
+
+- **Client-side masking and route guards are UX only** — the server masks and authorizes; never
+  rely on hiding a value the API already returned in full
+- Expect the API to send **masked** identifiers in lists and full values only on detail views;
+  don't request or cache more PII than the current view needs
+- Send the CSRF **custom header** (e.g. `X-Requested-With`) on every mutating request from the
+  fetch/XHR client; keep all state changes on non-GET verbs

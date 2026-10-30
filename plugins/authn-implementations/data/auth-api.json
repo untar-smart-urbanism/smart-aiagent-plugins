@@ -1,0 +1,56 @@
+{
+  "version": "1.0.0",
+  "basePath": "/auth/api",
+  "cookie": {
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "Lax",
+    "scope": "parent domain (SSO across subdomains)"
+  },
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/auth/api/me",
+      "auth": "cookie",
+      "response": "200 { email, admin } or 401",
+      "primaryUse": "Know the logged-in user from browser/SPA (header not visible to JS)"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/api/login",
+      "auth": "public",
+      "body": "{ email, password }",
+      "response": "200 + Set-Cookie + { email, admin }; 401 bad credentials; 400 validation",
+      "primaryUse": "Optional custom login form instead of gateway UI"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/api/logout",
+      "auth": "cookie",
+      "response": "204 + cookie cleared",
+      "primaryUse": "Cookie-only logout; prefer full-page /auth/logout for complete logout"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/api/me/change-password",
+      "auth": "cookie",
+      "body": "{ currentPassword, newPassword }",
+      "response": "204; 400 if current wrong or new too weak"
+    }
+  ],
+  "appsDoNotCall": [
+    "User-management endpoints (gateway-owned, admin-only)"
+  ],
+  "headersGatewayManages": [
+    {
+      "name": "X-User-Id",
+      "direction": "gateway → app",
+      "notes": "Stripped from inbound client first, then set only for valid session"
+    },
+    {
+      "name": "X-Request-Id",
+      "direction": "gateway → app",
+      "notes": "Correlation id; log and propagate"
+    }
+  ]
+}

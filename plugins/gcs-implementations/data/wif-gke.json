@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "name": "Workload Identity Federation for GKE",
+  "shortName": "WIF",
+  "description": "Connect pods on GKE to Google Cloud Storage (and other GCP APIs) without service-account key files. Credentials are short-lived and exchanged via the GKE metadata server. Application code uses Application Default Credentials (ADC).",
+  "references": [
+    "https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity",
+    "https://cloud.google.com/iam/docs/workload-identity-federation",
+    "https://cloud.google.com/docs/authentication/application-default-credentials"
+  ],
+  "forbidden": [
+    "Service account JSON key files committed to the repo",
+    "Manual keyFilename / credentials JSON passed to Storage in production GKE",
+    "Manual key rotation workflows for GCS on GKE"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "id": "ksa-annotation",
+      "title": "Annotate Kubernetes ServiceAccount (KSA) with GCP Service Account (GSA)",
+      "detail": "The pod runs with a Kubernetes ServiceAccount annotated with the GCP Service Account email (iam.gke.io/gcp-service-account=<GSA_EMAIL>)."
+    },
+    {
+      "order": 2,
+      "id": "metadata-exchange",
+      "title": "GKE metadata server exchanges KSA token for GSA token",
+      "detail": "GKE's metadata server intercepts the GCP credential request and exchanges the KSA token for a short-lived GSA token."
+    },
+    {
+      "order": 3,
+      "id": "iam-binding",
+      "title": "IAM workloadIdentityUser binding",
+      "detail": "IAM verifies the KSA is bound to the GSA via the roles/iam.workloadIdentityUser binding (principal://.../kubernetes/sa/<KSA> → serviceAccount:<PROJECT>.iam.gserviceaccount.com/<GSA>)."
+    },
+    {
+      "order": 4,
+      "id": "scoped-credentials",
+      "title": "Pod receives GSA-scoped credentials",
+      "detail": "The pod receives GCP credentials scoped to the GSA's IAM roles — no key file, no secret rotation needed. Grant the GSA least-privilege roles on buckets (e.g. roles/storage.objectAdmin or objectViewer as required)."
+    }
+  ],
+  "kubernetesManifestHints": {
+    "serviceAccount": {
+      "apiVersion": "v1",
+      "kind": "ServiceAccount",
+      "metadata": {
+        "name": "<app-ksa>",
+        "namespace": "<app-namespace>",
+        "annotations": {
+          "iam.gke.io/gcp-service-account": "<GSA_NAME>@<GCS_PROJECT_ID>.iam.gserviceaccount.com"
+        }
+      }
+    },
+    "deployment": {
+      "spec": {
+        "template": {
+          "spec": {
+            "serviceAccountName": "<app-ksa>"
+          }
+        }
+      }
+    }
+  },
+  "iamBindingExample": {
+    "role": "roles/iam.workloadIdentityUser",
+    "member": "serviceAccount:<GCS_PROJECT_ID>.svc.id.goog[<namespace>/<app-ksa>]",
+    "gsa": "<GSA_NAME>@<GCS_PROJECT_ID>.iam.gserviceaccount.com"
+  },
+  "applicationCode": {
+    "principle": "Authenticate via Application Default Credentials (ADC): GOOGLE_APPLICATION_CREDENTIALS locally, or workload identity on GKE. Do not pass keyFilename to Storage in production. Use a lazily-created Storage singleton cached on globalThis to avoid leaking clients across hot reloads (same pattern as db.ts).",
+    "authComment": "Authenticates via Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS or workload identity). The Storage client is a lazily-created singleton, cached on globalThis to avoid leaking clients across hot reloads (mirrors db.ts)",
+    "seeTemplate": "templates/gcs-client.ts"
+  },
+  "localDev": {
+    "notes": "Local development may set GOOGLE_APPLICATION_CREDENTIALS to a short-lived or personal ADC path, or use gcloud auth application-default login. Never commit key files. On GKE, leave GOOGLE_APPLICATION_CREDENTIALS unset so ADC uses WIF / metadata server."
+  }
+}

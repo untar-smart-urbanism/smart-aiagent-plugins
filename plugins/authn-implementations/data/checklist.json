@@ -1,0 +1,18 @@
+{
+  "version": "1.2.0",
+  "checklist": [
+    "Subdomain is registered with the gateway (else it isn't routed) — VERIFY ONLY: registration is performed by DevOps or the platform team, never by an agent. Unregistered -> report it and hand DevOps the values; do not register it yourself",
+    "App is reachable only through the gateway in production (no public ingress of its own)",
+    "No routes under /auth/** or /actuator/**",
+    "The app's own public paths (if any) are under /dangerously-skip-login/**; everything else is login-required",
+    "The gateway probe paths /health, /api/health, /version, /api/version (exact match) are implemented, answer without a session, and read no identity — these are unauthenticated by gateway design and are never a violation",
+    "Access mode is as intended (owners-only / access list / everyone) — VERIFY ONLY: it is set at /auth/ui/apps by DevOps or an authorized owner. Wrong mode -> report the intended value and who must change it; never change it yourself",
+    "Identity is read from X-User-Id (server) or /auth/api/me (browser)",
+    "No custom login/session/JWT handling for gateway auth",
+    "Roles/permissions (if any) are keyed by email and enforced in the app",
+    "X-Request-Id is logged and propagated to downstream calls",
+    "Login uses full-page navigation to /auth/ui/login; no SPA route claims /auth/**",
+    "Dev-only X-User-Id injection and mock login are disabled in production builds",
+    "Logout uses full-page /auth/logout (or POST /auth/api/logout for cookie-only clear)"
+  ]
+}

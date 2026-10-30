@@ -1,0 +1,9 @@
+{
+  "name": "scan-dependency-plugin-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Runtime dependencies for the scan-dependency plugin's scripts.",
+  "dependencies": {
+    "smol-toml": "1.8.0"
+  }
+}

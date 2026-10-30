@@ -1,0 +1,151 @@
+---
+description: OWASP Secure Coding Practices — apply on every code change and prompt. Agents consult code-review plugin automatically; /review-code and /audit-security for manual checks on existing projects.
+alwaysApply: true
+---
+
+# OWASP secure coding (always on)
+
+Source: [OWASP SCP Checklist](https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/stable-en/02-checklist/05-checklist)
+
+Apply these requirements on **every user prompt** that involves planning, writing, or modifying application code (Bun + Elysia backend with Drizzle, Svelte frontend, PostgreSQL; legacy React/Vue/Express projects apply the same controls with their existing stack's equivalents).
+
+## Agent obligations
+
+1. **Read** skill `apply-secure-coding` (`plugins/code-review/skills/apply-secure-coding/SKILL.md` or installed path) — do not skip security because the user did not mention it.
+2. **Load** `data/owasp-checklist.json` for the scope of work (backend, frontend, or fullstack).
+3. **Apply** secure coding **while writing** — not only at the end.
+4. **Before finishing** any coding task, mentally verify applicable checklist sections.
+5. **Existing projects:** user can run `/review-code` (changed files) or `/audit-security` (full repo).
+6. **Design-level patterns:** when the task touches **sensitive data at rest, identity/PII, authentication, sessions/tokens, secrets, or bulk/enumerable data access**, also read skill `apply-security-patterns` and consult the security-pattern sections of `data/owasp-checklist.json` (*Envelope encryption at rest* through *Abuse-resistant rate limiting*). Those checklist items say *what* to verify; the skill's `references/security-patterns.md` says *how* to build it and which residual risks to **document rather than silently accept**.
+
+Trigger on create, scaffold, implement, refactor, or debug — even if the user never mentions security.
+
+## 1. Input validation
+
+- Validate on the **server** (trusted system), never rely on client-only checks
+- Use **allow-lists** for type, length, format, and range
+- Reject invalid input; do not sanitize-and-accept hazardous input without extra controls
+- Validate all untrusted sources: HTTP body/query/headers, files, external APIs
+- Canonicalize (e.g. UTF-8) before validating
+
+## 2. Output encoding
+
+- Encode output on the server for the correct context (HTML, JSON, URL, SQL)
+- Never insert untrusted data into SQL, shell commands, LDAP, or OS calls without parameterization/encoding
+- Svelte: avoid `{@html}` with untrusted data; escape or sanitize untrusted HTML (legacy React: `dangerouslySetInnerHTML`)
+- SQL: Drizzle query builder or `sql` template with bound values only - never concatenate user input into SQL strings
+
+## 3. Authentication & passwords
+
+- Enforce auth on all non-public routes server-side
+- Hash passwords with **bcrypt/argon2** + salt on server; never store plaintext
+- Generic auth failure messages (no "wrong password" vs "wrong user")
+- Credentials only over TLS; use HTTP POST for login forms
+- MFA for sensitive accounts; lockout / rate-limit after failed attempts
+- **Fail fast** if the signing/session secret is missing, too short, or a known weak default
+- **Server-side revocation:** stateless tokens carry a unique id checked against a revocation store each request; logout and password change revoke immediately (see `apply-security-patterns`)
+
+## 4. Session management
+
+- Use framework session management; cryptographically random session IDs
+- `HttpOnly` + `Secure` cookies; no session IDs in URLs/logs
+- Invalidate session on logout; rotate session ID after login
+- Short inactivity timeout; regenerate session on privilege change
+- **Sliding idle window** (refresh cookie max-age per request) under an **absolute** token-expiry ceiling
+- Rotate the signing secret with a **previous-secret window** for zero-downtime rotation
+
+## 5. Access control
+
+- **Deny by default**; authorize every request server-side
+- Least privilege for users, service accounts, and DB roles
+- Never trust client-side or `Referer` alone for authorization
+- Verify object-level access (IDOR) on every direct reference
+- **Gate bulk export above browse** (elevated grant), rate-limit it, and audit-log it
+- **Close enumeration oracles:** existence/lookup endpoints reject partial/malformed input and are rate-limited **per authenticated actor**, not by shared IP alone
+
+## 6. Cryptography
+
+- Use platform-approved libraries (Web Crypto / Bun `crypto`, TLS); no custom crypto
+- Protect secrets in a managed secrets store / env — never hardcode keys or connection strings
+- Use CSPRNG for tokens, session IDs, reset links, and data-encryption keys
+- **Encrypt sensitive data at rest with a KEK→DEK envelope** (KEK in a KMS/HSM, one DEK per encrypted column), **not** a single flat app-held key
+- Use **authenticated encryption** (AES-256-GCM, random IV per value) and bind ciphertext to its location with **AAD** (model+row+column); embed a version + key id so rotation is transparent
+- For encrypted-but-searchable values, use a **keyed HMAC blind index** with its own key, salted via a KDF (see `apply-security-patterns`)
+
+## 7. Error handling & logging
+
+- Generic errors to clients — no stack traces, session IDs, or account details
+- Log auth failures, access-control failures, and validation failures
+- **Never log** passwords, tokens, or PII unnecessarily
+- Restrict log access
+- **Audit-log** sensitive exports, bulk mutations, privilege changes, and admin actions with actor+action+resource and a filter/count summary — never the sensitive values
+
+## 8. Data protection
+
+- No sensitive data in GET params, URLs, or client storage
+- Encrypt sensitive data at rest; purge temp/cache copies promptly
+- Disable autocomplete on sensitive forms
+- Remove debug comments and test endpoints before merge
+- **Minimize exposure:** project only needed columns; **mask** sensitive identifiers in lists and return the full value only on the single-record detail route (server-side, not client-only); return **aggregates, not per-record values**, from computations over sensitive data
+
+## 9. Communication security
+
+- **TLS everywhere** for auth and sensitive data; no TLS downgrade
+- Validate certificates; use HTTPS in production configs
+
+## 10. System configuration
+
+- No default credentials; least-privilege process accounts
+- Remove test/debug code and unnecessary endpoints from production paths
+- Fail securely on misconfiguration
+
+## 11. Database security (PostgreSQL)
+
+- **Parameterized queries only** — never concatenate user input into SQL
+- Least-privilege DB users per trust level (read/write/admin)
+- Connection strings in secure config, not source code
+- Close connections promptly
+
+## 12. File management
+
+- Never use user input as file paths; use allow-listed identifiers
+- Authenticate uploads; validate by content type (magic bytes), not extension
+- Store uploads outside web root; no execution permission on upload dirs
+
+## 13. Memory & resources
+
+- Bound input length; close DB/HTTP/file handles in `finally` blocks
+- Avoid `eval`, `Function()`, and shell execution with user input
+
+## 14. General coding
+
+- No user data to `eval`, dynamic `require`, or OS `exec`
+- Use managed APIs; synchronize shared mutable state
+- Review third-party dependencies (use `scan-dependency` plugin)
+
+## 15. API security
+
+- Secure authN/authZ on all APIs (tokens, OAuth 2.0, API keys)
+- HTTPS/TLS for all API traffic; rate limiting and WAF on sensitive endpoints
+- Do not expose stack traces, internal paths, or excessive fields in API responses
+- Log and monitor API activity; disable unused endpoints
+
+## 16. PAN and card data
+
+- Protect PAN at rest (hash, tokenize, encrypt, truncate, or mask)
+- Never send plaintext PAN via email, chat, or notifications
+- Mask PAN display (BIN + last 4 only); never show CVV in clear text
+- Do not log or store CVV insecurely
+
+## 17. AI-assisted development
+
+- Do not send secrets, credentials, or confidential data to AI tools without approval
+- Review AI-generated code for security, correctness, and privacy before use
+- Apply masking and minimization when AI usage involves personal or sensitive data
+- Automated committers (CI/CD and release bots) must be registered in `code-review/data/trusted-automation.json` with operator, authorized activity, and authorized paths
+- Registered automation acting within its authorized scope is expected — not an untrusted-actor finding; its commit content is still reviewed like any other code
+- Unregistered non-human committers, and registered automation committing outside its authorized scope, are must-fix findings — git identity is spoofable, so never grant blanket trust by name or email
+
+## Before finishing any coding task
+
+Mentally verify affected checklist sections. If you introduce a violation, fix it before completing.

@@ -1,0 +1,49 @@
+---
+description: Enforce monorepo layout and auto-resolve file placement — apps/, packages/, layered modules. Agents consult code-structure plugin on every prompt.
+alwaysApply: true
+---
+
+# Code structure enforcement (always on)
+
+When planning, creating, or modifying application code, follow the `code-structure` plugin. **Do not ask the user where files belong** — resolve placement from plugin data first.
+
+## Agent obligations (before creating or moving any file)
+
+1. **Read** skill `plan-code-structure` (`plugins/code-structure/skills/plan-code-structure/SKILL.md` or installed path).
+2. **Load** `data/monorepo-layout.json`, `data/frontend-layout.json`, `data/backend-layout.json`.
+3. **State** planned file paths in your approach — users should not need to specify `features/` vs `pages/` vs `modules/`.
+4. **After coding** on existing projects, violations should be fixed or flagged for `/fix-structure`.
+
+Trigger on create, scaffold, extend, refactor, or any coding task — even if the user never mentions folder structure.
+
+## Root layout
+
+```
+apps/
+├── frontend/     # Svelte + Vite + TypeScript only
+└── backend/      # Bun + Elysia + TypeScript only
+
+packages/
+├── shared-types/   # Shared interfaces, DTOs, enums
+├── shared-utils/   # Shared utility functions
+├── eslint-config/
+└── tsconfig/
+
+docs/
+infrastructure/
+scripts/
+```
+
+## Rules
+
+- Frontend code **only** in `apps/frontend/`
+- Backend code **only** in `apps/backend/`
+- Shared types/DTOs/enums → `packages/shared-types` — **never duplicate** across apps
+- Shared utilities → `packages/shared-utils`
+- Prefer workspace package imports over copying code
+- Bun workspaces (root `package.json` `workspaces`, `bun.lock`) - not npm/yarn/pnpm on new projects
+- Stack comes from `golive-gate/data/build-contract.json` `allowedStack`; legacy (Vibe Start before 2026-10-07) repos keep their existing structure and are audited advisory, not converted
+
+## On violation
+
+Move misplaced files to the correct directory before continuing. Extract duplicated types into `packages/shared-types`.

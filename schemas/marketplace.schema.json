@@ -1,0 +1,122 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourcompany.com/schemas/marketplace.schema.json",
+  "title": "Unified Agent Plugin Marketplace",
+  "description": "Canonical marketplace manifest for multi-platform agent plugin directories.",
+  "type": "object",
+  "required": ["name", "plugins"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+      "description": "Marketplace identifier (kebab-case)."
+    },
+    "version": { "type": "string" },
+    "owner": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "description": { "type": "string" },
+        "license": { "type": "string" }
+      }
+    },
+    "plugins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pluginEntry" }
+    },
+    "externalPlugins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/externalPluginEntry" },
+      "description": "Third-party plugins from external git sources (skill bundles, partner plugins)."
+    }
+  },
+  "$defs": {
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["cursor", "claude", "codex"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "pluginEntry": {
+      "type": "object",
+      "required": ["name", "source", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
+        },
+        "source": {
+          "type": "string",
+          "description": "Relative path to the plugin directory within this repository."
+        },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "platforms": { "$ref": "#/$defs/platforms" },
+        "hidden": {
+          "type": "boolean",
+          "description": "When true, excluded from synced platform marketplace manifests (meta/authoring plugins)."
+        }
+      }
+    },
+    "externalPluginEntry": {
+      "type": "object",
+      "required": ["name", "description", "source"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "author": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "url": { "type": "string", "format": "uri" }
+          }
+        },
+        "category": { "type": "string" },
+        "platforms": { "$ref": "#/$defs/platforms" },
+        "source": {
+          "type": "object",
+          "required": ["url", "path"],
+          "properties": {
+            "source": {
+              "type": "string",
+              "enum": ["git-subdir"]
+            },
+            "url": { "type": "string", "format": "uri" },
+            "path": { "type": "string" },
+            "ref": { "type": "string" },
+            "sha": { "type": "string" }
+          }
+        },
+        "strict": {
+          "type": "boolean",
+          "description": "Claude Code: false allows skill-bundle entries without a full plugin manifest."
+        },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Skill paths relative to source.path (for external skill bundles)."
+        },
+        "homepage": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}

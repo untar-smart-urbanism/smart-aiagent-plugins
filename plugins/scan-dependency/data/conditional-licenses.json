@@ -1,0 +1,84 @@
+{
+  "$schema": "../../schemas/license-policy.schema.json",
+  "version": "1.1.0",
+  "description": "Open Source licenses accepted only when listed requirements are satisfied and documented",
+  "tier": "accepted-with-requirement",
+  "policy": "Approve only after the agent/developer confirms and documents the requirement. Do not silently treat as unrestricted Accepted.",
+  "source": "Company Open Source License Policy",
+  "conditional": [
+    {
+      "id": "GPL-1.0",
+      "spdxIds": ["GPL-1.0", "GPL-1.0-only", "GPL-1.0-or-later"],
+      "requirement": "If distributed, source code obligation must be checked."
+    },
+    {
+      "id": "GPL-2.0",
+      "spdxIds": ["GPL-2.0", "GPL-2.0-only", "GPL-2.0-or-later"],
+      "requirement": "If distributed, source code obligation must be checked."
+    },
+    {
+      "id": "GPL-3.0",
+      "spdxIds": ["GPL-3.0", "GPL-3.0-only", "GPL-3.0-or-later"],
+      "requirement": "If distributed, source code obligation must be checked."
+    },
+    {
+      "id": "LGPL",
+      "spdxIds": [
+        "LGPL-2.0",
+        "LGPL-2.0-only",
+        "LGPL-2.0-or-later",
+        "LGPL-2.1",
+        "LGPL-2.1-only",
+        "LGPL-2.1-or-later",
+        "LGPL-3.0",
+        "LGPL-3.0-only",
+        "LGPL-3.0-or-later",
+        "LGPL"
+      ],
+      "requirement": "Use by linking only. If modified or distributed, requirement must be checked."
+    },
+    {
+      "id": "EPL",
+      "spdxIds": ["EPL-1.0", "EPL-2.0", "EPL"],
+      "requirement": "Source code obligation applies to EPL files only."
+    },
+    {
+      "id": "MPL",
+      "spdxIds": ["MPL-1.0", "MPL-1.1", "MPL-2.0", "MPL"],
+      "requirement": "Modified MPL files must follow MPL license requirement."
+    },
+    {
+      "id": "CDDL",
+      "spdxIds": ["CDDL-1.0", "CDDL-1.1", "CDDL"],
+      "requirement": "Modified CDDL files must follow CDDL license requirement."
+    },
+    {
+      "id": "SSPL-1.0",
+      "spdxIds": ["SSPL-1.0", "SSPL"],
+      "requirement": "Backend and unmodified use only."
+    },
+    {
+      "id": "Elastic-2.0",
+      "spdxIds": ["Elastic-2.0", "Elastic"],
+      "requirement": "License limitation must be checked before use."
+    },
+    {
+      "id": "Apache-family",
+      "spdxIds": ["Apache"],
+      "requirement": "Must include license notice and attribution. Prefer an explicit Apache SPDX id (e.g. Apache-2.0)."
+    },
+    {
+      "id": "BSD-family",
+      "spdxIds": ["BSD"],
+      "requirement": "Must include license notice and attribution. Prefer an explicit BSD SPDX id (e.g. BSD-2-Clause, BSD-3-Clause)."
+    },
+    {
+      "id": "Other-Phase-2",
+      "spdxIds": [],
+      "requirement": "Other Accepted Phase 2 licenses: follow license condition, attribution, and notice requirement. Document the exact license and compliance steps before use."
+    }
+  ],
+  "compoundRules": {
+    "rule": "If any token in a compound expression is Accepted-with-Requirement, the whole dependency is Approved-with-Requirement and all matching requirements must be documented."
+  }
+}

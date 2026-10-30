@@ -1,0 +1,68 @@
+{
+  "version": "1.4.0",
+  "name": "Apps Gateway",
+  "description": "Company standard for authentication of downstream applications. The gateway handles login, sessions, TLS, and routing. Apps never implement login or sessions — they read X-User-Id.",
+  "mentalModel": "Browser → Apps Gateway (TLS, login, routing, identity) → YOUR APP (reads X-User-Id, serves routes)",
+  "tldr": [
+    "Never implement login or sessions in the app",
+    "Gateway authenticates at the edge and forwards the user's email in X-User-Id",
+    "Every path requires login by default (secure by default)",
+    "If a request reaches you on a normal path, it is authenticated and X-User-Id is present",
+    "Public paths must be under /dangerously-skip-login/**",
+    "Subdomain must be registered; gateway also authorizes who may access the app"
+  ],
+  "identityHeader": {
+    "name": "X-User-Id",
+    "value": "Authenticated user's email",
+    "absentMeans": "Anonymous (only possible on /dangerously-skip-login/** paths)"
+  },
+  "correlationHeader": {
+    "name": "X-Request-Id",
+    "notes": "Log it and forward to downstream calls for tracing"
+  },
+  "subdomain": {
+    "pattern": "myapp.<public-domain>",
+    "notes": "Subdomain label is the service name. Must be registered before routing works."
+  },
+  "registration": {
+    "consolePath": "/auth/ui/apps",
+    "steps": "What the AUTHORIZED PERSON does in the console (not steps for an agent to carry out): add app → enter subdomain + owner emails → save. Live immediately.",
+    "defaultAccessMode": "WHITELIST (owners-only)",
+    "accessModes": ["WHITELIST", "EVERYONE"],
+    "performedBy": {
+      "rule": "REGISTRATION IS NEVER PERFORMED BY AN AGENT OR BY THESE PLUGINS. It is a DevOps/platform operation: an authorized person (DevOps or the platform team) submits the console form at /auth/ui/apps, or the deployment platform's own automation calls the register API. Both are humans-or-platform, never us.",
+      "whatWeMayDo": "Plan it, record the intended subdomain / owners / access mode for DevOps to apply, and VERIFY after the fact that the app resolves and routes. Reading and reporting state is fine.",
+      "whatWeMustNotDo": [
+        "Call POST /auth/api/apps/register — not with curl, fetch, a script, or generated code",
+        "Obtain, request, store, echo, or embed the X-App-Registration-Key registration credential anywhere",
+        "Submit the /auth/ui/apps console form through a browser tool on the user's behalf",
+        "Change an existing app's owners or access mode",
+        "Generate a registration Job or manifest — registration automation belongs to the platform team, not to the application repo"
+      ],
+      "ifAskedToRegister": "Say plainly that registration is a DevOps/platform action, hand the user the exact values to submit (subdomain, owners, access mode), and stop. Do not offer a scripted workaround.",
+      "why": "Registration decides who may enter the application, and the registration key is a credential. An agent performing it would be granting access under an identity that is not accountable for the decision, using a secret it should never hold."
+    },
+    "consoleAndApiAreTheSameThing": {
+      "note": "The browser console and the register API are ONE system, not two generations. The UI at https://<app>.<domain>/auth/ui/apps is the human front-end: submitting the form calls the same register API that the platform calls directly. One operation, one record, two entry points — there is nothing to reconcile between them.",
+      "api": "POST /auth/api/apps/register, authenticated with the header X-App-Registration-Key. RECORDED FOR UNDERSTANDING ONLY — see performedBy.whatWeMustNotDo. Neither an agent nor these plugins ever call it.",
+      "whyItLivesUnderAuth": "/auth/** is gateway-owned and never forwarded to the app, which is exactly why the console is served there on the application's own hostname. This confirms the reservedPrefixes rule in paths.json rather than conflicting with it."
+    }
+  },
+  "forbiddenInApp": [
+    "Login pages / password handling",
+    "JWTs / session cookies for gateway identity",
+    "Custom session management for gateway auth",
+    "Routes under /auth/** or /actuator/**",
+    "Client-side routing to /auth/** (must be full-page navigation)",
+    "Accepting client-forged X-User-Id in production",
+    "Any call to POST /auth/api/apps/register, or code/scripts that hold the X-App-Registration-Key — registration is a DevOps/platform action (see registration.performedBy)",
+    "Code that adds, removes, or edits gateway owners or the access mode"
+  ],
+  "appResponsibilities": [
+    "Build normal web app/API routes",
+    "Read X-User-Id for identity",
+    "App-level roles/permissions keyed by email (if needed)",
+    "Keep public surface under /dangerously-skip-login/** only",
+    "Network-isolate the service so only the gateway can reach it in production"
+  ]
+}

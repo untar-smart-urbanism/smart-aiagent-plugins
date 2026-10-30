@@ -1,0 +1,45 @@
+{
+  "$schema": "../../schemas/plugin-manifest.schema.json",
+  "name": "project-scaffold",
+  "displayName": "Project Scaffold",
+  "version": "1.15.0",
+  "description": "Bootstraps and documents projects. Initializes a repo with mirrored CLAUDE.md/AGENTS.md, CONTEXT.md, a PROJECT.md go-live dossier, and a secure .gitignore, then generates comprehensive docs — including an IT design-review document (docs/DESIGN.md) with inline Mermaid diagrams (business workflow, architecture, sequence, transaction, and database-schema ER), a field-typed database schema, an external-connections inventory, and an on-demand PDF export — and completes the dossier. Adopts existing projects into the playbook via /adopt-vibe (baseline audits, remediation backlog, repo migration).",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "category": "developer-tools",
+  "keywords": [
+    "scaffold",
+    "init",
+    "repo",
+    "documentation",
+    "docs",
+    "readme",
+    "claude-md",
+    "agents-md",
+    "bootstrap",
+    "design-document",
+    "diagram",
+    "mermaid",
+    "er-diagram",
+    "pdf"
+  ],
+  "tags": [
+    "devtools",
+    "scaffold",
+    "docs"
+  ],
+  "platforms": [
+    "cursor",
+    "claude",
+    "codex"
+  ],
+  "components": {
+    "skills": "./skills/",
+    "commands": "./commands/"
+  }
+}

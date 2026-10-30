@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourcompany.com/schemas/plugin-manifest.schema.json",
+  "title": "Unified Plugin Manifest",
+  "description": "Canonical plugin.manifest.json — single source of truth; platform manifests are generated or derived from this file.",
+  "type": "object",
+  "required": ["name", "description", "components"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$"
+    },
+    "displayName": { "type": "string" },
+    "version": { "type": "string" },
+    "description": { "type": "string" },
+    "author": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "homepage": { "type": "string", "format": "uri" },
+    "repository": { "type": "string", "format": "uri" },
+    "license": { "type": "string" },
+    "category": { "type": "string" },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["cursor", "claude", "codex"]
+      },
+      "minItems": 1
+    },
+    "components": {
+      "type": "object",
+      "description": "Shared component paths — defined once, referenced by all platform manifests.",
+      "additionalProperties": false,
+      "properties": {
+        "skills": { "$ref": "#/$defs/pathOrPaths" },
+        "agents": { "$ref": "#/$defs/pathOrPaths" },
+        "commands": { "$ref": "#/$defs/pathOrPaths" },
+        "rules": { "$ref": "#/$defs/pathOrPaths" },
+        "hooks": { "type": "string" },
+        "mcp": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "pathOrPaths": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      ]
+    }
+  }
+}

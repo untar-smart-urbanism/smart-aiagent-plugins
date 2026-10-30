@@ -1,0 +1,20 @@
+{
+  "name": "plugin-template",
+  "displayName": "Plugin Template",
+  "version": "1.0.0",
+  "description": "TODO: describe this plugin",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "category": "developer-tools",
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "commands": "./commands/",
+  "rules": "./rules/",
+  "hooks": "./hooks.json",
+  "mcpServers": "./.mcp.json"
+}

@@ -1,0 +1,34 @@
+{
+  "name": "vibe-knowledge",
+  "version": "1.3.0",
+  "description": "Publish verified, sanitized learnings from one project chat to a review PR with one command; recall approved topic-indexed cards from a private repository.",
+  "author": {
+    "name": "Acme Corp"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "knowledge",
+    "memory",
+    "recall",
+    "chat-history",
+    "architecture",
+    "debugging",
+    "review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Vibe Knowledge",
+    "shortDescription": "Publish verified, sanitized learnings from one project chat to a review PR with one command; recall approved topic-index",
+    "longDescription": "Publish verified, sanitized learnings from one project chat to a review PR with one command; recall approved topic-indexed cards from a private repository.",
+    "developerName": "Acme Corp",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Help me use Vibe Knowledge in this repository."
+    ]
+  }
+}

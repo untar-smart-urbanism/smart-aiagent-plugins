@@ -1,0 +1,29 @@
+{
+  "$schema": "../../schemas/pinning-policy.schema.json",
+  "version": "1.0.0",
+  "description": "Require npm dependency version specifiers to be pinned to an exact resolved version, not a floating range, dist-tag, or unpinned git/URL ref.",
+  "appliesTo": "package.json dependencies, devDependencies, optionalDependencies, and peerDependencies — checked at add/bump time (check-dependency, package-json-guard) and on existing trees (scan-dependencies)",
+  "policy": {
+    "onFloatingSpecifierFound": "reject",
+    "description": "A version specifier must resolve to exactly one immutable artifact: a bare exact semver, or a git/URL ref pinned to a commit SHA. Ranges, dist-tags, and mutable refs are rejected.",
+    "rationale": "npm supply-chain attacks — event-stream (2018, a compromised transitive maintainer add slipped in via a normal minor bump) and ua-parser-js (2021, malicious versions published directly to existing tags and pulled in wherever a caret range like ^0.7.29 was declared) — land through auto-resolved floating ranges silently pulling a newly compromised release at install time, often executing via a postinstall script with no review of the new bytes. An exact pin means a compromised release sits unused until someone deliberately bumps the version, ideally through this plugin's OSV + license gate.",
+    "exceptions": "None by default. A temporary range must be documented in the PR and re-pinned before merge."
+  },
+  "classification": {
+    "pinned": ["Bare exact semver (4.17.21, prerelease/build metadata allowed)", "git/URL ref with a commit-SHA (7-40 hex chars) after '#'"],
+    "floating": ["^ / ~ ranges", "comparator ranges (>=, <=, >, <, ||)", "hyphen ranges", "wildcards/x-ranges/partial versions (*, 1.x, 1.2.x, 1, 1.2)", "dist-tags (latest, next, beta, canary, ...)", "empty specifier", "git/URL ref with a branch, non-SHA tag, or no ref"],
+    "exemptPrefixes": {
+      "note": "Reported for awareness, never failed on — these are not fetched from the public registry the same way this policy's threat model targets.",
+      "prefixes": ["file:", "link:", "workspace:"],
+      "alsoExempt": "Bare relative/absolute local paths used without an explicit file: prefix"
+    }
+  },
+  "severity": {
+    "dependencies": "HIGH",
+    "optionalDependencies": "HIGH",
+    "devDependencies": "MEDIUM",
+    "peerDependencies": "INFORMATIONAL",
+    "_peerDependenciesNote": "peerDependencies declare a compatibility RANGE by design — npm never installs a peerDependency on the declaring package's behalf, so a broad range there is idiomatic, not a floating-install risk. Report for visibility; never fail."
+  },
+  "verdict": { "failOn": ["HIGH", "MEDIUM"], "warnOnly": ["INFORMATIONAL"] }
+}

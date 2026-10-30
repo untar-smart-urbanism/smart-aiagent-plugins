@@ -1,0 +1,10 @@
+{
+  "name": "plugin-template",
+  "description": "TODO: describe this plugin",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.0.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

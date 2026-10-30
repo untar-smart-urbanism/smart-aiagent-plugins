@@ -1,0 +1,154 @@
+{
+  "title": "docs/REGISTRATION.json Project Registration Spec",
+  "source": "Change Management & Secure Development with AI awareness deck (October 2026), Alpha Builder Journey stage 03 (Project registration); SOP Request Tools, Access, and Deployment for AI-Assisted Tools, step 3 (Register the tool with BPT); Alpha Projects Registry field list",
+  "version": "1.2.0",
+  "outputFile": "docs/REGISTRATION.json",
+  "consumer": "The Alpha Projects Registry form. The owner uploads this file to the form before development starts; Power Automate reads it and fills every field in the registry list.",
+  "structure": "Flat, single-level JSON object with exactly the keys in fields, in that order. Values are strings, numbers, booleans, or null — no nested objects or arrays — so a Power Automate 'Parse JSON' step maps each key straight to a list column. Every key is always present: an optional field with no value is null; a required field is never null.",
+  "generateOn": "/start-vibe, after the labels, repo, triage, and initial risk are recorded. Re-generate (full overwrite) whenever a source value changes before registration; after registration, changes go through the registry, not this file.",
+  "commitPolicy": "Commit it with the scaffold so the registry and the repo agree. Never put secrets or personal data in it.",
+  "askRule": "Fields marked source 'owner input' are asked from the owner (after the PRD pre-fill, when docs/PRD.md exists) — never invented or guessed. If the owner cannot answer a required field yet, do not write the file: tell the owner which fields are missing.",
+  "prdRule": "When docs/PRD.md exists at /start-vibe, read it before asking anything and pre-fill every field whose prd hint the PRD answers. PRD-derived values are drafts: show them to the owner as one list (\"from your PRD: ...\") and record them only after the owner confirms or corrects them. Ask only for what the PRD does not answer. Triage answers and the risk level still follow risk-criteria.json — the PRD prompts the question, the owner confirms, and the code verifies later. Never copy personal data or secrets from the PRD into this file.",
+  "fields": {
+    "project-name": {
+      "required": true,
+      "type": "string",
+      "source": "package.json name, else the repo directory name",
+      "prd": "PRD title or product name — only when package.json has no name yet"
+    },
+    "repo-url": {
+      "required": true,
+      "type": "string",
+      "source": "git remote get-url origin — must be under https://github.com/acme-org-ops/"
+    },
+    "project-start-date": {
+      "required": true,
+      "type": "date (YYYY-MM-DD)",
+      "source": "PROJECT.md ## Vibe Start (the start-vibe date)"
+    },
+    "expected-live-date": {
+      "required": false,
+      "type": "date (YYYY-MM-DD) | null",
+      "source": "owner input — the planned production date; also recorded as 'Planned production' in PROJECT.md ## Go-Live Steps",
+      "prd": "Timeline, milestones, or target release date"
+    },
+    "live-date": {
+      "required": false,
+      "type": "date (YYYY-MM-DD) | null",
+      "source": "The successful production deployment date. Always null at registration; the registry sets it at go-live"
+    },
+    "related-team": {
+      "required": true,
+      "type": "string",
+      "source": "owner input — the team the tool is built for or used by",
+      "prd": "Users and roles / target users — the team the tool is for"
+    },
+    "support-contact": {
+      "required": true,
+      "type": "string (email)",
+      "source": "PROJECT.md ## Support Contact — one lowercase company email (format per golive-gate.json ownership-support-contacts)"
+    },
+    "project-status": {
+      "required": true,
+      "type": "\"exploration\" | \"development\" | \"staging\" | \"qa testing\" | \"live\" | \"cancelled\"",
+      "source": "Always \"exploration\" when /start-vibe writes this file (registered, development not started); later statuses are set in the registry as the project moves through development, staging, qa testing, live, or cancelled"
+    },
+    "project-summary": {
+      "required": true,
+      "type": "string",
+      "source": "owner input, drafted from PROJECT.md ## Problem Being Solved — include the background (the problem and how the work is done today) and the solution",
+      "prd": "Background, problem statement and current process (background) plus goals and solution overview (solution)"
+    },
+    "project-impact-value": {
+      "required": false,
+      "type": "number | null",
+      "unit": "IDR per year",
+      "source": "owner input — estimated ANNUAL impact value in IDR as a plain number (no currency symbol, no thousands separators, no text), summing every source of value: manpower cost efficiency, revenue generated, or anything else. Convert monthly or per-task figures to a year before recording (e.g. 20 hours saved per month × 12 × hourly cost). Ask the owner for the figures behind the estimate and show the calculation so they can confirm it; never invent the inputs. null when the owner has no estimate",
+      "prd": "Success metrics, business value, time or cost saved, revenue impact — use the figures to draft the annual calculation for the owner to confirm"
+    },
+    "company": {
+      "required": true,
+      "type": "string",
+      "source": "PROJECT.md ## Label Company — one of golive-gate.json gcp-label-set.labels.gcp-label-company.allowed"
+    },
+    "division": {
+      "required": true,
+      "type": "string",
+      "source": "PROJECT.md ## Label Division — one of gcp-label-set.labels.gcp-label-div.allowed"
+    },
+    "department": {
+      "required": true,
+      "type": "string",
+      "source": "PROJECT.md ## Label Department — lowercase, hyphenated"
+    },
+    "triage-inbound": {
+      "required": true,
+      "type": "boolean",
+      "source": "PROJECT.md ## Change Triage — risk-criteria.json triage",
+      "prd": "Users outside the company, public access, customer or seller users — a prompt to confirm, never the answer"
+    },
+    "triage-outbound": {
+      "required": true,
+      "type": "boolean",
+      "source": "PROJECT.md ## Change Triage",
+      "prd": "Data and integrations section: external web services or third-party APIs called"
+    },
+    "triage-mass-deployment": {
+      "required": true,
+      "type": "boolean",
+      "source": "PROJECT.md ## Change Triage",
+      "prd": "Desktop app, browser extension, or installation on many devices"
+    },
+    "assessed-risk-level": {
+      "required": true,
+      "type": "\"low\" | \"medium\" | \"high\"",
+      "source": "The assess-risk-level result recorded in PROJECT.md ## Risk Level (provisional at project start)"
+    },
+    "bpt-confirmed-risk-level": {
+      "required": false,
+      "type": "\"low\" | \"medium\" | \"high\" | null",
+      "source": "Always null at registration; BPT sets it in the registry at stage 06"
+    },
+    "data-classification": {
+      "required": true,
+      "type": "\"confidential\" | \"restricted\" | \"internal\" | \"public\"",
+      "source": "The highest level in PROJECT.md ## Data Used (risk-criteria.json dataClassification)",
+      "prd": "Data and integrations section: datasets used, mapped to dataClassification"
+    },
+    "deployment-target": {
+      "required": false,
+      "type": "\"web app\" | \"mobile app\" | \"power apps\" | \"local deployment\" | \"runtime server\" | \"browser extension\" | \"machine learning model\" | \"github repo\" | null",
+      "source": "owner input — exactly one of the listed values",
+      "prd": "Platform or delivery form (web, mobile, browser extension, Power Apps, ...)"
+    },
+    "app-integration": {
+      "required": false,
+      "type": "free text | null",
+      "source": "owner input — free text describing the other apps or systems it integrates with and how (e.g. 'Reads daily stock exports from WMS; posts a summary to the team's Teams channel'); no fixed format; null when none",
+      "prd": "Data and integrations section: the other apps and systems it reads from or writes to"
+    }
+  },
+  "example": {
+    "project-name": "stock-recap",
+    "repo-url": "https://github.com/acme-org-ops/stock-recap",
+    "project-start-date": "2026-10-17",
+    "expected-live-date": "2026-11-30",
+    "live-date": null,
+    "related-team": "warehouse operations",
+    "support-contact": "app.owner@example.com",
+    "project-status": "exploration",
+    "project-summary": "Warehouse leads merge three spreadsheets by hand every morning to see stock levels, which takes about an hour. The tool reads the stock exports and shows one daily recap per warehouse.",
+    "project-impact-value": 24000000,
+    "company": "acme",
+    "division": "operations",
+    "department": "merchant-ops",
+    "triage-inbound": false,
+    "triage-outbound": false,
+    "triage-mass-deployment": false,
+    "assessed-risk-level": "medium",
+    "bpt-confirmed-risk-level": null,
+    "data-classification": "internal",
+    "deployment-target": "web app",
+    "app-integration": null
+  }
+}

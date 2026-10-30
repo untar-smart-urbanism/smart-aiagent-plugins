@@ -1,0 +1,32 @@
+[project]
+name = "pinning-fixture"
+version = "0.0.0"
+dependencies = [
+    "requests==2.31.0",
+    "flask",
+    "django>=4.0",
+    "click===8.1.7",
+    "numpy==1.26.0; python_version >= \"3.8\"",
+    "some-fork @ git+https://github.com/user/some-fork.git@a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+    "another-fork @ git+https://github.com/user/another-fork.git@main",
+    "vendored-tool @ file:///vendor/tool",
+]
+
+[project.optional-dependencies]
+extra = [
+    "pandas==1.5.*",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "1.2.3"
+flask = "^2.3.0"
+attrs = "~23.1.0"
+numpy = "*"
+scipy = {version = "1.10.0", extras = ["test"]}
+some-fork = {git = "https://github.com/user/some-fork.git", rev = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"}
+another-fork = {git = "https://github.com/user/another-fork.git", branch = "main"}
+vendored-tool = {path = "../vendor/tool"}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"

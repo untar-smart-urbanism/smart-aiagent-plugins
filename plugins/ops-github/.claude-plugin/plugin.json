@@ -1,0 +1,10 @@
+{
+  "name": "ops-github",
+  "description": "GitHub repos, SemVer version management, and auto-push. Bumps app versions before every push using Conventional Commits. Migrates existing repos from personal GitHub into the approved company org.",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.6.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

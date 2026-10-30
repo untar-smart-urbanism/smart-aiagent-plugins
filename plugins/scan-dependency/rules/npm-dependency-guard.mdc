@@ -1,0 +1,25 @@
+---
+description: When editing package.json, verify new dependencies pass OSV and 3-tier license policy checks.
+alwaysApply: false
+globs:
+  - "**/package.json"
+  - "**/package-lock.json"
+  - "**/bun.lock"
+  - "**/pnpm-lock.yaml"
+---
+
+# package.json guard
+
+When adding or bumping a dependency in `package.json`:
+
+1. Resolve the target **exact version**
+2. Check OSV: `POST https://api.osv.dev/v1/query` with `ecosystem: npm`
+3. Check license: `npm view <pkg>@<ver> license`
+4. Validate against `scan-dependency/data/`:
+   - `allowed-licenses.json` — Accepted
+   - `conditional-licenses.json` — Accepted with Requirement (document before merge)
+   - `forbidden-licenses.json` — Forbidden (reject)
+
+Do not commit `package.json` / lockfile changes until OSV passes and license is Accepted or Accepted-with-Requirement (with requirements documented).
+
+After changes, run `node plugins/scan-dependency/scripts/scan-lockfile.js .` (reads `bun.lock` and `package-lock.json`) or the `scan-dependencies` skill. A binary `bun.lockb` is not readable — convert it with `bun install --save-text-lockfile`.

@@ -1,0 +1,8 @@
+# Private inputs and machine-local caches never belong in shared knowledge.
+transcripts/
+exports/
+drafts/
+.cache/
+*.jsonl
+.env
+.env.*

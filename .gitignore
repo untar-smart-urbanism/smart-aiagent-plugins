@@ -1,0 +1,25 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node (for validation/scaffold scripts)
+node_modules/
+npm-debug.log*
+
+# Secrets — never commit plugin credentials
+.env
+.env.*
+*.pem
+credentials.json
+secrets.json
+
+# Generated sync artifacts (optional; remove if you commit synced manifests)
+# .cursor-plugin/marketplace.json
+# .claude-plugin/marketplace.json
+# .agents/plugins/marketplace.json

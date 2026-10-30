@@ -1,0 +1,284 @@
+{
+  "title": "Non-Tech Change Management — Risk Classification",
+  "source": "Non-Tech Change Management with AI Assistance Playbook, Section 1 (Choose the Risk Level); Change Management & Secure Development with AI awareness deck (October 2026); Standar Manajemen Informasi & Data; Kebijakan Privasi Internal; UU PDP No. 27/2022",
+  "version": "1.4.0",
+  "policyExceptions": "The 2026-07-29 GRC-confirmed exceptions remain historical context. The customer/seller contact and daily transaction rules below are a 2026-09-26 project policy update requested by the owner; do not attribute those new rules to the earlier GRC confirmation. The October 2026 change-management procedure (awareness deck) supersedes both where they differ: it adds the four-level data classification (dataClassification), customer transaction data as Restricted, UU PDP personal-data rules (pdpRules), the three-question triage (triage), and BPT confirmation of the risk level (bptConfirmation). A legal person's name and a generic company contact channel are not personal data. A named business-partner employee remains an identifiable person unless GRC/Information Security documents a narrower exception. Record unresolved classification questions for GRC/Information Security rather than silently exempting identifiable people.",
+  "classificationRule": "Evaluate High criteria first, then Medium, then Low. The highest matching tier wins. Size never lowers risk: a tool is not automatically Low just because it is small — if it uses sensitive data or connects to important systems, it is Medium or High. If classification is ambiguous, classify one tier up and confirm with Information Security.",
+  "evidenceRule": "Interview answers are claims, not facts. Before classifying, scan the codebase for each question's codebaseSignals and cross-check the answer. When evidence contradicts an answer, the evidence wins: classify from the evidence and record the discrepancy in PROJECT.md. An answer can raise the tier but never lower it below what the code shows. Exception: for owner-confirmed criteria that code cannot settle (see exposureRule, and the human-judgment criticality question), the owner's confirmation governs and a code signal only prompts the question — it does not by itself set the tier. The agent's classification is always the assessed level; the final level is the one BPT confirms (see bptConfirmation), which may be higher or lower.",
+  "provisionalRule": "If the project has no or minimal code yet (fresh scaffold, pre-build), there is nothing to verify against: mark every answer 'UNVERIFIABLE — no code yet', record the classification as PROVISIONAL (intent-based), and still seed Go-Live Steps from the claimed tier. A provisional classification MUST be re-verified against the actual codebase at review-before-release and at the go-live gate — it is never accepted as final.",
+  "exposureRule": "Public or internet-facing access is NOT determinable from code alone — vercel.json/netlify.toml/ingress configs, permissive CORS, and 0.0.0.0 binding are prompts to ask, not proof; actual reachability depends on gateways, ingress, and network policy outside the repo. The classifier MUST ask the owner whether the tool is reachable from the internet or by people outside the company, surfacing any exposure codebaseSignals it found as part of that question. Do not classify the tool internet-facing — or internal-only — from code signals alone. If the owner cannot confirm, mark exposure UNVERIFIABLE, classify one tier up, and confirm with Information Security.",
+  "financialDataRule": "Daily purchase and sales order line items, quantities, prices, and order values that are not linked to an identifiable customer are INTERNAL operational transaction data, not sensitive financial data merely because they contain monetary values or are stored in a database; operationalDataRule governs them. Customer transaction data — a customer's transaction history, complaints, and feedback — is RESTRICTED (dataClassification). A static financial report that does not drive payments likewise is not by itself a High-risk trigger. Separately assess personal financial account data, payments, payouts, settlement, commission, invoicing, general-ledger posting, and other money-moving or money-determining functions; these may trigger High regardless of where data is stored. Other confidential company data can also trigger High.",
+  "personalDataRule": "A customer or seller who is a natural person: name, email address, and phone number are PII, including when each appears alone. Protect real values in development, logs, prompts, samples, and storage according to the applicable PII controls. A company/legal-entity name and a generic business contact channel (for example a shared company inbox or switchboard) are business data, not PII solely by being contact fields. A named employee or representative of a business partner is still an identifiable natural person; do not apply a blanket business-partner exemption to that person's name, direct email, or direct phone without a documented GRC/Information Security decision. Role/job title, an employee's named work email or work mobile, employee ID and org details, and a non-customer internal login or access-control email are personal data under UU PDP (pdpRules.stillPersonal) but low risk: they do not automatically make an app High — limit access, and assess combinations or broad personal datasets. KTP/NIK, personal NPWP, payroll, personal financial account, health, and similarly regulated data remain sensitive. A company's own legal identifiers (company NPWP, NIB, deed of establishment) are business data, not personal data (pdpRules.notPersonal). The customer/seller and business-contact distinctions are the 2026-09-26 owner policy update, not part of the 2026-07-29 GRC attestation.",
+  "locationDataRule": "Position data — latitude/longitude, GPS coordinates, geofence or check-in points — on its own, attached to no identifiable person, is not personal data and never by itself makes a tool High risk. Once coordinates are linked to an identified or identifiable individual they are that person's personal data under UU PDP (combined identifiers, pdpRules): protect them like the rest of that person's data and classify on the personal data present, including the location. This supersedes the 2026-07-29 GRC note (muhammad.irsya) that position data is never PII.",
+  "operationalDataRule": "Daily purchase and sales order items, quantities, prices, and values not linked to an identifiable customer, plus daily sales recaps, stock opname reports, and ops extracts, are INTERNAL operational data. Generic IDs (Order-ID, SKU, AWB) are Internal. Customer transaction history, complaints, and feedback are Restricted: encrypt, mask, or hash them, and limit them to the teams that need them. Their presence in a file, database, dashboard, or archive does not alone make them sensitive financial data or High risk; internal data still makes a tool at least Medium. Classify a workflow High when it handles payments or money, determines settlement, payout, commission, billing/invoicing, or general-ledger posting, contains other sensitive data, is externally exposed, or supports a critical process. The 2026-07-29 GRC confirmation covered archive-only operational reports; the broader daily transaction rule is the 2026-09-26 owner update.",
+  "dataClassification": {
+    "source": "Standar Manajemen Informasi & Data, as summarized in the October 2026 change-management awareness deck",
+    "rule": "Record the highest classification the tool reads, stores, or shows in PROJECT.md ## Data Used, using exactly these four level names. The level drives handling; the tier comes from the tiers below (Confidential data meets the High sensitive-data criterion; Restricted and Internal data make a tool at least Medium).",
+    "levels": [
+      {
+        "id": "confidential",
+        "examples": ["Payroll, benefits, reimbursement and medical claims", "Credentials, authentication data and secrets", "PII: customer and employee data, biometrics, personal bank accounts, performance reviews", "Third-party contracts, PKS and NDA", "Medical, criminal and background-check records"],
+        "access": "Owner and specially granted users only",
+        "handling": ["Encrypt in storage and in transit", "Redact before any external sharing", "Never in logs, prompts, samples, or source code (never-log.json)"],
+        "tierEffect": "High (sensitive data)"
+      },
+      {
+        "id": "restricted",
+        "examples": ["Activity guidelines and reports", "Application source code", "Access-rights lists", "Customer transaction data: history, complaints, feedback"],
+        "access": "Specific teams, and partners under NDA/PKS",
+        "handling": ["Encrypt, mask, or hash", "Source code lives only in the company GitHub org (acme-org-ops) and is never pasted into unapproved AI tools"],
+        "tierEffect": "At least Medium. Every app has source code, so source code alone does not raise the tier; Restricted business data (customer transaction data, access-rights lists) does."
+      },
+      {
+        "id": "internal",
+        "examples": ["Internal regulations and policies", "Documents meant for all employees", "Generic IDs: Order-ID, SKU, AWB", "Daily order items and values not linked to an identifiable customer (operationalDataRule)"],
+        "access": "All employees",
+        "handling": ["Never move to non-company IT resources (personal drives, personal accounts, unapproved AI tools)"],
+        "tierEffect": "At least Medium"
+      },
+      {
+        "id": "public",
+        "examples": ["Official website", "Customer newsletters", "Mass-media information"],
+        "access": "Released by the information owner",
+        "handling": [],
+        "tierEffect": "None"
+      }
+    ]
+  },
+  "pdpRules": {
+    "source": "UU PDP No. 27/2022 (Indonesian Personal Data Protection Law); Kebijakan Privasi Internal",
+    "definition": "Personal data is any data that identifies a person on its own or combined with other information, in physical or digital form.",
+    "general": ["Full name", "Residential address", "Place and date of birth", "Job position", "NIK, passport, SIM, KK", "KITAS / KITAP", "Phone number", "Email address", "Bank account number", "Family data", "Combined identifiers"],
+    "specific": ["Health and medical data", "Biometric data", "Genetic data", "Criminal records", "Children's data (under 17)", "Personal financial data", "Political views", "Sexual life / orientation", "Organization membership", "Device and browsing data", "Education history"],
+    "specificRule": "Specific personal data is higher risk: a tool that processes any of it is High and needs a DPIA (Data Protection Impact Assessment) recorded before go-live (golive-gate.json dpia-recorded).",
+    "notPersonal": ["Company phone numbers (office switchboard, call-center hotline)", "Company addresses (head office, branch, warehouse)", "Company shared inboxes (info@, support@)", "Company legal identifiers (NIB, company NPWP, deed of establishment)", "Anonymized or aggregated data (total orders per city, average basket size)"],
+    "stillPersonal": [
+      { "item": "Work email containing a person's name", "risk": "low" },
+      { "item": "An employee's assigned work mobile", "risk": "low" },
+      { "item": "Employee ID and org details linked to a named employee", "risk": "low" },
+      { "item": "Business information of an individual (sole-proprietor) seller", "risk": "as personalDataRule" },
+      { "item": "Pseudonymized data that can be re-linked to a person (e.g. a re-linkable customer ID)", "risk": "as the underlying person's data" }
+    ],
+    "lowRiskHandling": "Low-risk personal data: limit access; extra encryption is optional."
+  },
+  "triage": {
+    "source": "October 2026 change-management procedure, 'Three questions decide your path'",
+    "questions": [
+      { "id": "inbound", "question": "Is it reachable from outside the company (inbound)?", "interviewId": "exposure" },
+      { "id": "outbound", "question": "Does it call the web or external APIs (outbound)?", "interviewId": "outbound" },
+      { "id": "mass-deployment", "question": "Will it be installed or deployed on many company devices?", "interviewId": "mass-deployment" }
+    ],
+    "none": "Internal use only. The owner is fully accountable, and the risk is owned by the owner and their manager: both must understand the risks and prevent unwanted ones from occurring. Do not ask for the manager's identity or GitHub account. Instead, inform the owner of the risks in noneRisks that apply to this tool and how to mitigate each, so they can walk their manager through them, and write that list into PROJECT.md ## Change Triage. If the tool handles PII or financial data, still consult R&D and Information Security.",
+    "noneRisks": [
+      { "risk": "Data leaks through exports, screenshots, or copies on personal drives, chats, or unapproved AI tools", "mitigation": "Keep data and exports on company IT only; share links, not files; never paste real data into unapproved AI tools" },
+      { "risk": "Wrong output from a bug or an AI-generated mistake drives a wrong decision", "mitigation": "Test the main function with realistic data, review AI output before use, and cross-check key numbers against the source system" },
+      { "risk": "Secrets or real personal data end up in code, logs, or sample files", "mitigation": "Load secrets from the environment, use fake or masked samples, and follow never-log.json" },
+      { "risk": "Quiet scope creep: more users, new data sources, or outside access without re-assessment", "mitigation": "Re-run /assess-risk on any escalationTriggers change; share with others only after the required review" },
+      { "risk": "Nobody can maintain or restore it when the owner is away or leaves", "mitigation": "Keep the code in acme-org-ops, keep PROJECT.md current, and keep a restorable previous version" },
+      { "risk": "Unsafe or non-compliant dependencies", "mitigation": "Add packages only through check-dependency (OSV and licence policy)" }
+    ],
+    "any": "A Tech & Information Security review is required, whether or not the tool was built with AI, and on any risk tier. A triage answer alone does not set the tier: inbound follows exposureRule (High), outbound and mass deployment add the review requirement without making the tool High by themselves.",
+    "allPaths": ["Code lives in the Ops GitHub org (acme-org-ops)", "AI-built tools follow the AI Playbook and the approved CI/CD pipeline", "Hosting is requested through Infra"]
+  },
+  "bptConfirmation": {
+    "source": "October 2026 change-management procedure, Alpha Builder Journey stage 06",
+    "rule": "BPT (Business Process Transformation) confirms the final risk level after staging testing and before the required review. The confirmed level may be higher or lower than the agent's assessment; once recorded it is the level the review route and the go-live gate use. The agent never lowers its own assessment — only a BPT confirmation can.",
+    "confirmers": ["acme-org-jane-doe", "acme-org-john-smith"],
+    "quorum": 1,
+    "record": "PROJECT.md ## Risk Level line: 'BPT-confirmed: <low|medium|high> by <github-login> on <YYYY-MM-DD>'. The login must be one of confirmers.",
+    "reconfirm": "If a later assessment finds a new escalationTriggers condition the BPT confirmation did not cover, the confirmation no longer applies: re-classify and ask BPT to confirm again. Never silently override a BPT-confirmed level."
+  },
+  "interview": [
+    {
+      "id": "users",
+      "question": "Who uses this tool — just you, your team, or people outside the company?",
+      "codebaseSignals": [
+        "Multi-user auth: login/session/role code, user tables or role enums in schemas",
+        "Shared deployment configs (Dockerfile, k8s manifests, CI deploy jobs) — personal scripts rarely have them",
+        "README or docs addressed to a team audience"
+      ]
+    },
+    {
+      "id": "systems",
+      "question": "Does it connect to any company systems (APIs, databases, internal apps)?",
+      "codebaseSignals": [
+        "Internal hostnames or API base URLs (company domains, *.internal, service names) in code, .env.example, or configs",
+        "Database connection strings or ORM/DB client dependencies (pg, postgres, drizzle-orm, @electric-sql/pglite, prisma, mysql, mongodb)",
+        "Service-account files, API client SDKs for internal platforms"
+      ]
+    },
+    {
+      "id": "data",
+      "question": "What data does it read or store? Any internal, personal, customer, KTP/NPWP, payroll, or financial data?",
+      "followUps": [
+        "Do names, emails, or phone numbers identify individual customers or sellers, named business-partner representatives, or only legal entities and generic company contact channels? Individual customer/seller contacts are PII even alone; do not exempt named partner people without a documented decision (personalDataRule).",
+        "Do daily purchase/sales order items or values only describe transactions for operational use, or does the workflow handle payment, settlement, payout, commission, invoicing, or GL posting? Database storage alone does not change operational data into sensitive financial data (operationalDataRule).",
+        "If position data is stored: is it coordinates only, or is it linked to an identified individual? Linked coordinates are that person's personal data (locationDataRule).",
+        "Does it hold customer transaction history, complaints, or feedback? That is Restricted data (dataClassification).",
+        "Does it process any specific personal data — health, biometric, genetic, criminal records, children's data, personal financial data, political views, sexual life, organization membership, device/browsing data, or education history? If yes, the tool is High and needs a DPIA (pdpRules).",
+        "What is the highest data classification it handles — Confidential, Restricted, Internal, or Public (dataClassification)?"
+      ],
+      "codebaseSignals": [
+        "Field or column names matching never-log.json scanHints (ktp, nik, npwp, payroll, salary, gaji, phone/no_hp, alamat/address). The words customer, account, and amount are NOT never-log scanHints — treat them as prompts to ask, not as forbidden-data matches",
+        "Customer/seller name, direct email, or direct phone columns identify people even when they appear alone; inspect the subject type before classifying. Legal-entity names and generic company channels are business data; named partner contacts remain identifiable people",
+        "Latitude/longitude/geo columns, coordinate pairs, or GPS payloads — per locationDataRule not personal data on their own; check whether they are stored against a user, employee, customer, or seller ID, which makes them personal data",
+        "Columns for specific personal data (pdpRules.specific): diagnosis/medical, biometric/fingerprint/face, religion/political, birth date of minors, device ID or browsing history — High and DPIA",
+        "Daily purchase/sales order items and values in files, databases, or dashboards are internal operational data; look for payment, settlement, payout, commission, invoice, or GL code paths before treating the workflow as financial High risk",
+        "Schema/migration files or DB queries that persist sensitive personal or financial-account fields are High signals. A database table of ordinary order items and values alone is not a High trigger",
+        "Queries or API calls fetching customer, HR, or finance resources"
+      ]
+    },
+    {
+      "id": "automation",
+      "question": "Does it automate regular work or influence team decisions?",
+      "codebaseSignals": [
+        "Schedulers: cron expressions, node-cron/agenda deps, scheduled CI workflows, cloud scheduler configs",
+        "Queue consumers or webhook handlers that act without a human trigger",
+        "Report/dashboard generation code feeding decisions"
+      ]
+    },
+    {
+      "id": "exposure",
+      "question": "Is it reachable from the internet or by users outside the company?",
+      "ownerConfirmed": true,
+      "note": "Owner-confirmed (see exposureRule). The codebaseSignals below are prompts to raise in the interview, not proof of exposure — never set the tier from them alone.",
+      "codebaseSignals": [
+        "Public hosting configs: vercel.json, netlify.toml, public ingress/load-balancer manifests, custom public domains",
+        "Server binding to 0.0.0.0 with no auth middleware, permissive CORS (origin: *)",
+        "OAuth callback URLs or links pointing at public domains"
+      ]
+    },
+    {
+      "id": "outbound",
+      "question": "Does it call the web or any external APIs or services outside the company?",
+      "note": "Triage question (triage). A yes requires a Tech & Information Security review; it does not by itself make the tool High.",
+      "codebaseSignals": [
+        "fetch/axios/HTTP client calls to non-company hostnames, third-party API SDKs, webhook senders",
+        "API keys or base URLs for external services in .env.example or config"
+      ]
+    },
+    {
+      "id": "mass-deployment",
+      "question": "Will it be installed or deployed on many company devices (desktop app, browser extension, agent, script pushed to laptops)?",
+      "note": "Triage question (triage). A yes requires a Tech & Information Security review.",
+      "codebaseSignals": [
+        "Electron/Tauri builds, browser-extension manifests, installers, MDM or endpoint deployment scripts"
+      ]
+    },
+    {
+      "id": "customer-facing",
+      "question": "Do customers or sellers use it or see its output directly?",
+      "codebaseSignals": [
+        "Customer-facing routes or domains, emails/notifications sent to customers or sellers"
+      ]
+    },
+    {
+      "id": "other-services",
+      "question": "Does it affect other company services if it misbehaves (for example BSC), by writing to them or feeding them data?",
+      "ownerConfirmed": true,
+      "codebaseSignals": [
+        "Write calls (POST/PUT/DELETE) to internal service APIs, producers onto shared queues or topics, writes to another system's database"
+      ]
+    },
+    {
+      "id": "money",
+      "question": "Does it handle payments or move money?",
+      "codebaseSignals": [
+        "Payment SDK dependencies or imports: midtrans, xendit, doku, stripe, paypal, braintree",
+        "Checkout, invoice, refund, transfer, or disbursement code paths",
+        "Currency/amount arithmetic tied to external payment or banking APIs"
+      ]
+    },
+    {
+      "id": "criticality",
+      "question": "Would a critical business process stop or break if this tool fails?",
+      "ownerConfirmed": true,
+      "note": "Owner-confirmed (human judgment). The codebaseSignals below are prompts, not proof.",
+      "codebaseSignals": [
+        "Mostly human judgment — but check what depends on its output: cron jobs other systems consume, webhooks into production systems, data pipelines feeding operational dashboards"
+      ]
+    }
+  ],
+  "tiers": [
+    {
+      "id": "high",
+      "match": "any",
+      "criteria": [
+        "Accessible outside the company or internet-facing (owner-confirmed — see exposureRule)",
+        "Handles payments or money",
+        "Uses sensitive personal or company data — Confidential data (dataClassification), KTP/NIK, personal NPWP, payroll, personal financial accounts, identifiable customer/seller contact records, or any specific personal data under UU PDP (pdpRules). Ordinary daily order items and values, generic company contacts and company legal identifiers, internal access identifiers alone, and coordinates linked to no person do not meet this criterion; assess payments and other independent High triggers separately",
+        "Customer-facing",
+        "Affects other services (for example BSC)",
+        "Supports a critical business process"
+      ],
+      "requirements": [
+        "Formal review by Tech R&D/Architecture, SRE, Information Security and/or GRC, concluded by a formal approval task approved before go-live (formalApproval)",
+        "DPIA recorded when specific personal data is processed (pdpRules)",
+        "Monitoring in place",
+        "Application rollback/recovery steps documented; SRE-owned backup pipeline tracked as a follow-up, not a blocker",
+        "Access levels and permissions defined",
+        "Independent reviewer (not the builder)"
+      ],
+      "independenceEnforcementNote": "The requirement above is quoted from the playbook as written. How it is machine-enforced lives in review-proof.json 'independence': the sealing reviewer must be neither the Project Owner nor the Support Contact recorded for the project. Repo commit authorship does not disqualify a reviewer.",
+      "approvals": [
+        "Tech R&D / Architecture",
+        "SRE",
+        "Information Security",
+        "GRC (as applicable)"
+      ],
+      "approvalsNote": "Playbook Section 1 names Tech R&D, SRE, Information Security, and/or GRC; Section 5 calls the design review 'Architecture'. Both refer to the same formal review route.",
+      "formalApproval": {
+        "rule": "The formal review ends in a formal approval task. Any ONE of the approvers below may approve it; record it in PROJECT.md ## Review Evidence as 'Formal approval: approved by <github-login> on <YYYY-MM-DD> (<task link>)'.",
+        "approvers": ["acme-org-andi-r-djunaedi", "acme-org-hidayat-febiansyah", "acme-org-eko-k-khannedy"],
+        "quorum": 1,
+        "independence": "The approver must be neither the Project Owner nor the Support Contact."
+      }
+    },
+    {
+      "id": "medium",
+      "match": "any",
+      "criteria": [
+        "Used by a team (not just the builder)",
+        "Connects to company systems",
+        "Uses internal company data, or Restricted data such as customer transaction history, complaints, feedback, or access-rights lists (dataClassification)",
+        "Automates regular work",
+        "Affects team decisions"
+      ],
+      "requirements": [
+        "Independent review by another person (reviewer is not the builder — enforced as: neither the Project Owner nor the Support Contact; see review-proof.json independence)",
+        "Testing before release",
+        "Previous working version identified for rollback",
+        "Application recovery steps documented; SRE-owned backup pipeline tracked as a follow-up, not a blocker",
+        "Access levels defined"
+      ],
+      "approvals": ["Independent reviewer sign-off"]
+    },
+    {
+      "id": "low",
+      "match": "all",
+      "criteria": [
+        "Small personal tool or dashboard",
+        "No sensitive data",
+        "No company system connections",
+        "Only the owner is affected if it breaks"
+      ],
+      "requirements": [
+        "Owner checks the tool",
+        "Owner tests the main function"
+      ],
+      "approvals": ["Owner self-check"]
+    }
+  ],
+  "escalationTriggers": [
+    "New data source added",
+    "Opened to external or internet access",
+    "Starts handling payments or money",
+    "New user group or team adoption",
+    "Now feeds a critical business process",
+    "Starts calling the web or external APIs",
+    "Deployed to many company devices",
+    "Becomes customer-facing",
+    "Starts affecting other services (for example BSC)",
+    "Starts processing specific personal data (DPIA required)"
+  ]
+}

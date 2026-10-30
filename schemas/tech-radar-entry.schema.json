@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourcompany.com/schemas/tech-radar-entry.schema.json",
+  "title": "Tech Radar Data File",
+  "type": "object",
+  "required": ["stack", "entries"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "stack": {
+      "type": "string",
+      "enum": ["backend", "frontend"]
+    },
+    "runtime": { "type": "string" },
+    "databasePolicy": { "type": "string" },
+    "versionPolicy": { "type": "string" },
+    "source": { "type": "string" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "ring", "quadrant", "description"],
+        "properties": {
+          "name": { "type": "string" },
+          "ring": {
+            "type": "string",
+            "enum": ["adopt", "trial", "assess", "hold"]
+          },
+          "quadrant": { "type": "string" },
+          "recommendedVersion": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "tech-radar",
+  "version": "2.1.1",
+  "description": "Points to the company allowedStack (Bun, Elysia, Drizzle, PostgreSQL, Svelte, BLUE DLS design tokens), fills gaps the stack does not cover (messaging, search, cache, storage, logging, infra), and keeps the legacy ring for pre-2026-10-07 projects.",
+  "author": {
+    "name": "Acme Corp"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "tech-radar",
+    "guidelines",
+    "bun",
+    "elysia",
+    "svelte",
+    "blue-dls",
+    "legacy",
+    "constraints",
+    "standards"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Tech Radar",
+    "shortDescription": "Points to the company allowedStack (Bun, Elysia, Drizzle, PostgreSQL, Svelte, BLUE DLS design tokens), fills gaps the st",
+    "longDescription": "Points to the company allowedStack (Bun, Elysia, Drizzle, PostgreSQL, Svelte, BLUE DLS design tokens), fills gaps the stack does not cover (messaging, search, cache, storage, logging, infra), and keeps the legacy ring for pre-2026-10-07 projects.",
+    "developerName": "Acme Corp",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Help me use Tech Radar in this repository."
+    ]
+  }
+}

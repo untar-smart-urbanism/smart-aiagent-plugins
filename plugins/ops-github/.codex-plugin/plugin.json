@@ -1,0 +1,35 @@
+{
+  "name": "ops-github",
+  "version": "1.6.0",
+  "description": "GitHub repos, SemVer version management, and auto-push. Bumps app versions before every push using Conventional Commits. Migrates existing repos from personal GitHub into the approved company org.",
+  "author": {
+    "name": "Acme Corp"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "github",
+    "repository",
+    "gh",
+    "private",
+    "push",
+    "ops",
+    "semver",
+    "versioning"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "OPS GitHub",
+    "shortDescription": "GitHub repos, SemVer version management, and auto-push",
+    "longDescription": "GitHub repos, SemVer version management, and auto-push. Bumps app versions before every push using Conventional Commits. Migrates existing repos from personal GitHub into the approved company org.",
+    "developerName": "Acme Corp",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Help me use OPS GitHub in this repository."
+    ]
+  }
+}

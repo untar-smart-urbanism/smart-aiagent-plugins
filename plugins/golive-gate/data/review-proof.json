@@ -1,0 +1,91 @@
+{
+  "title": "REVIEW-PROOF.md Reviewer-Sealed Proof Spec",
+  "source": "Non-Tech Change Management with AI Assistance Playbook, Section 5 (Review Before Release) — reviewer-driven proof variant",
+  "version": "1.3.0",
+  "outputFile": "docs/REVIEW-PROOF.md",
+  "outputLocation": "Project docs/ folder, committed by the reviewer so it is discoverable and travels with the repo",
+  "runBy": "The reviewer, in their own checkout, via /vibe-review (skill seal-review-proof). For Low risk the builder may self-run it; /vibe-check runs it automatically for Low.",
+  "overwritePolicy": "Latest-only — each run fully overwrites docs/REVIEW-PROOF.md for the current commit. It is a derived proof, not a log; history lives in git and in PROJECT.md ## Review Evidence (append-only).",
+  "checklistSource": "review-checklist.json — the same Section 5 items, filtered by the PROJECT.md risk tier. Reuse the agent-verification recipes documented in the review-before-release skill.",
+  "anchor": {
+    "field": "reviewed-commit",
+    "howToGet": "git rev-parse HEAD at the start of the review (before the seal commit)",
+    "note": "The proof binds to a single commit. No reviewed range and no diff digest are computed."
+  },
+  "independence": {
+    "rule": "Reviewer identity is 'git config user.name <git config user.email>' plus the reviewer's GitHub login from 'gh api user --jq .login' when gh is authenticated. The independent reviewer may be ANYONE except the project owner or the support contact stated for this project. Prior authorship is irrelevant: appearing among the repo's git commit authors does NOT disqualify a reviewer. This is a role exclusion, not an authorship exclusion.",
+    "ownerSupportResolution": "Build the exclusion set — the stated project owner (a GitHub username) and support contact (an email) — resolving each field independently, in this order: (1) vibe-release.json at the repo root, when the file exists and the field ('project-owner' / 'support-contact') is present and non-null; (2) otherwise PROJECT.md '## Project Owner' / '## Support Contact', which is the upstream source those fields are copied from (release-doc.json field map). The fallback is what makes a first review work: check-golive-readiness writes vibe-release.json, and seal-review-proof chains it only AFTER sealing, so on a genuine first review the file legitimately does not exist yet. Treat a field as EMPTY when it holds nothing, only the PROJECT.template.md HTML comment, or a placeholder ('TBD', 'N/A', '-', 'none'). Never ask the reviewer to supply these values — the exclusion set must not be reviewer-nominated, or a reviewer could define themselves out of it.",
+    "identityMatching": "Two tiers. Use STRICT whenever the recorded value satisfies its required format (golive-gate.json item ownership-support-contacts, fields); use LEGACY only for a value that predates those formats. STRICT (the normal path — exact identifiers, no fuzzy matching): (a) project-owner is a GitHub username — MATCH iff it equals the reviewer's GitHub login, compared case-insensitively (GitHub logins are case-insensitive), with any leading '@' stripped. If gh is unauthenticated so the reviewer's login cannot be resolved, do NOT fall back to name matching: the owner comparison is UNDETERMINED — say so and stop, since the reviewer could be the owner. (b) support-contact is an email — MATCH iff it equals the reviewer's git user.email, trimmed and lowercased, by EXACT equality; never substring, never domain wildcard (the same idiom as code-review data/trusted-automation.json matchRule). Also compare the reviewer's GitHub account email ('gh api user --jq .email') when it is non-null. LEGACY (only when a field is free text that fails its format — the reviewer cannot fix it, since they must never edit these fields; record the format violation as an observation and tell them /vibe-check will ask the owner to reformat it): (c) extract candidates from the field — every email-shaped substring, and every person-name candidate = the text inside each '(...)' group PLUS the field text with all '(...)' groups and all emails removed. (d) Emails compare by exact equality as in (b). (e) Names: lowercase; replace . , ' \" ( ) < > [ ] : and - with a space; collapse whitespace; trim; drop the collective nouns team, teams, squad, group, department, dept, division, unit; discard a candidate that is then empty. MATCH iff the normalized reviewer name is token-compatible with a name candidate: every token of the shorter token list pairs one-to-one with a distinct token of the longer list, where two tokens pair if they are equal or one is a single letter that is the first letter of the other, AND at least one pair matched by equality on a token of 3 or more characters. So 'A. Owner' matches reviewer 'App Owner'; 'A. R.' matches nobody; 'Merchant Ops' matches no person. (f) Never infer a person from a shared mailbox local part — 'ops-helpdesk@example.com' does NOT match a reviewer named 'Ops Helpdesk'; only exact email equality reaches a mailbox. (g) NEAR-MISS (LEGACY only) — a name candidate shares a token of 3 or more characters with the reviewer's name but is not a MATCH (field 'B. Owner', reviewer 'App Owner'): do not auto-pass. Ask the reviewer once, plainly: 'PROJECT.md records <raw field> as the <project owner|support contact> — are you that person, or the person behind that team/alias?' Yes -> MATCH; no -> not a match, and record the near-miss in the proof; unanswered -> UNDETERMINED. STRICT never uses the near-miss question: an exact identifier either matches or it does not.",
+    "resultValues": {
+      "HOLDS": "The reviewer matched neither the project owner nor the support contact — independent.",
+      "HOLDS-PARTIAL": "Independence holds against the field(s) that resolved; the other was empty. Name the missing field in the proof.",
+      "VIOLATED": "The reviewer matched the project owner or the support contact — self-certification.",
+      "UNDETERMINED": "Independence could not be established: neither field resolved, or the reviewer's own identity for a resolved field could not be obtained (gh unauthenticated, so the GitHub login needed to compare against a username project-owner is unknown), or a LEGACY near-miss question was left unanswered."
+    },
+    "undeterminedRule": "If BOTH fields are unresolvable, independence is UNDETERMINED — never pass by default: verdict INCOMPLETE, with the fix 'fill PROJECT.md ## Project Owner and ## Support Contact, then re-run /vibe-review'. Independence is ALSO UNDETERMINED when a field resolved but the reviewer's matching identity could not be obtained — specifically when project-owner is a GitHub username and gh is unauthenticated, so the reviewer's login is unknown: the fix there is 'run gh auth login, then re-run /vibe-review'. Never treat an unobtainable reviewer identity as a non-match. If exactly one field resolves, compare against what resolved and record HOLDS-PARTIAL naming the missing field — at Medium/High the review-checklist.json item support-defined FAILs independently in that case, so the run is not approved anyway; independence just must not silently claim full coverage.",
+    "teamOrMailboxOnlyCase": "Under STRICT matching the project owner is a GitHub username, so it always names an individual and this case cannot arise for that field. It still arises for a support contact that is a role or queue mailbox (ops-helpdesk@example.com — allowed by the gate's warnLocalPatterns, since a queue is a legitimate support contact), and for any LEGACY free-text field naming only a team. In those cases independence HOLDS against the stated identities — but a member of that queue or team could seal undetected, and no directory lookup is performed. Record it as a NON-blocking observation in the proof's '## Reviewer' section, with the remedy: record a named individual so the check is person-level.",
+    "low": "Self-review allowed — the builder, the project owner, or the support contact may be the reviewer. Record 'self-review' in the proof and skip the comparison.",
+    "medium": "The reviewer must NOT be the project owner or the support contact stated for this project (resolve per ownerSupportResolution, compare per identityMatching). VIOLATED -> this is self-certification: refuse to seal and write no proof. UNDETERMINED -> do not approve: verdict INCOMPLETE. HOLDS / HOLDS-PARTIAL -> proceed. Being among the repo's commit authors is NOT disqualifying and is never a reason to refuse.",
+    "high": "Same as Medium; formal Architecture/Tech R&D, SRE, and Information Security sign-offs are additionally required and are verified as recorded by check-golive-readiness — not by this skill.",
+    "limitation": "No signing keys are used, so independence is attestation-grade, and it is ROLE-based rather than authorship-based. Under STRICT matching the comparison is on exact identifiers — a GitHub username and a company email — which is materially stronger than name matching: the reviewer's GitHub login comes from their authenticated gh session, and the project owner is an org-verified login. Residual weaknesses: git user.email is spoofable by editing git config; the owner/support values in PROJECT.md are editable by the builder (the union with the committed vibe-release.json limits that); a role/queue support mailbox names a queue, not a person, so a member of that queue could seal undetected; and no directory lookup maps an email to a GitHub login, so the two identifiers are compared independently rather than resolved to one person. A contributor who wrote part of this tool MAY seal it, provided they are neither the project owner nor the support contact — a deliberate relaxation of the earlier 'no repo commit author' rule, adopted because that rule disqualified nearly every available teammate. LEGACY free-text fields fall back to fuzzy name matching and are weaker still. Signed-tag hardening and directory-backed identity are deferred future work. State this limitation in the proof, together with the exclusion set actually compared against."
+  },
+  "stalenessRule": "The proof is fresh while the only tracked changes since 'reviewed-commit' are the proof + release docs. Compute: git diff --name-only <reviewed-commit>..HEAD. Fresh iff the result is empty or lists only docs/REVIEW-PROOF.md, PROJECT.md, and vibe-release.json (the last is regenerated and committed as part of the same review handoff). Any other tracked-source change since the review → stale; re-run /vibe-review.",
+  "sealPolicy": "The reviewer authors the sealing commit: after showing what will be committed, stage docs/REVIEW-PROOF.md + PROJECT.md and commit as the reviewer's git identity. The commit author is the verifiable seal. seal-review-proof then regenerates vibe-release.json (chained check-golive-readiness) and commits it as a second reviewer commit on top of the seal, so the handoff ends fully committed. Do NOT push — leave that to /push-github (both commits).",
+  "verdictValues": {
+    "PASS": "Every applicable checklist item passed and independence holds (HOLDS or HOLDS-PARTIAL) — the tool is reviewer-approved for this commit.",
+    "FAIL": "One or more applicable items failed. The proof is written with the blocking items listed; the tool is not approved.",
+    "INCOMPLETE": "The review could not be completed (e.g. human-judgment items unanswered, or independence UNDETERMINED — the project owner / support contact exclusion set could not be resolved). Not approved."
+  },
+  "reviewEvidenceSummary": "Append one dated line to PROJECT.md ## Review Evidence: date, reviewer name, tier, verdict, reviewed-commit (short hash), a link to docs/REVIEW-PROOF.md, and the independence result (HOLDS | HOLDS-PARTIAL | UNDETERMINED). Append-only per rules/project-dossier.mdc — never rewrite earlier entries.",
+  "vibeReleaseFields": {
+    "note": "check-golive-readiness reads this proof / the latest Review Evidence entry to fill three flat fields in vibe-release.json (spec: release-doc.json). After sealing, seal-review-proof chains check-golive-readiness to regenerate vibe-release.json against the sealed commit, so the sealed review reaches the release doc without a separate /vibe-check re-run. The chained gate — never this skill directly — computes release-gate-status and target-commit-hash.",
+    "review-verdict": "PASS | FAIL | INCOMPLETE | null",
+    "review-proof": "docs/REVIEW-PROOF.md when the proof exists, else null",
+    "reviewed-at": "ISO date the proof was sealed, else null"
+  },
+  "template": {
+    "note": "docs/REVIEW-PROOF.md is Markdown with these sections, in order.",
+    "header": "# Review Proof — <tool/repo name>  (heading line with tier, verdict, and date)",
+    "sections": [
+      {
+        "heading": "## Summary",
+        "fields": ["Tool / repo name", "Risk tier (low | medium | high)", "Verdict (PASS | FAIL | INCOMPLETE)", "Sealed date (ISO)"]
+      },
+      {
+        "heading": "## Reviewer",
+        "fields": [
+          "Reviewer name",
+          "Reviewer email",
+          "Independence basis — the project owner and support contact compared against, quoted verbatim with their source (PROJECT.md section and/or vibe-release.json)",
+          "Independence result — HOLDS | HOLDS-PARTIAL | VIOLATED | UNDETERMINED (for Low, self-review is allowed and stated as such)",
+          "Observations — a team/alias-only owner or support contact, an answered near-miss, or a missing field; none of these block on their own"
+        ]
+      },
+      {
+        "heading": "## Reviewed commit",
+        "fields": ["reviewed-commit full hash", "Commit date"]
+      },
+      {
+        "heading": "## Checklist results",
+        "table": "| id | check | applies | result (PASS/FAIL/NA/NEEDS-HUMAN) | verified-by (agent/human) | evidence / note |"
+      },
+      {
+        "heading": "## Outstanding items",
+        "fields": ["Blocking items with what fixes each; 'None' when the verdict is PASS"]
+      },
+      {
+        "heading": "## Seal",
+        "fields": ["'Sealed by <reviewer name> <email> on <date>.'", "'This proof is valid for commit <reviewed-commit>. Changing tracked source after this commit invalidates it (re-run /vibe-review).'", "Attestation-grade limitation note (see independence.limitation)"]
+      }
+    ]
+  },
+  "example": {
+    "reviewed-commit": "3f9c2e1a0b4d5e6f7890abcdef1234567890abcd",
+    "tier": "medium",
+    "verdict": "PASS",
+    "reviewer": "R. Reviewer <reviewer@example.com>",
+    "independence": "HOLDS",
+    "independence-basis": "project-owner: 'a-owner' (GitHub login) [PROJECT.md]; support-contact: 'app.owner@example.com' [PROJECT.md]; reviewer GitHub login: 'r-reviewer' — no match on either",
+    "sealed-at": "2026-07-14"
+  }
+}

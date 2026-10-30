@@ -1,0 +1,10 @@
+{
+  "name": "tech-radar",
+  "description": "Points to the company allowedStack (Bun, Elysia, Drizzle, PostgreSQL, Svelte, BLUE DLS design tokens), fills gaps the stack does not cover (messaging, search, cache, storage, logging, infra), and keeps the legacy ring for pre-2026-10-07 projects.",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "2.1.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

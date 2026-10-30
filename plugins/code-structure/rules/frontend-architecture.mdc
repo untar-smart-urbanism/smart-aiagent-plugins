@@ -1,0 +1,38 @@
+---
+description: Svelte + Vite + TypeScript frontend architecture — lib/features, api (Eden), stores separation under apps/frontend/src.
+alwaysApply: false
+globs:
+  - "apps/frontend/**"
+  - "**/apps/frontend/**"
+---
+
+# Frontend architecture
+
+Stack: **Svelte + TypeScript, bundled with Vite**; UI from `@acme/rnd-svelte.*` themed with BLUE DLS tokens (`@acme/blue-design-tokens`). Source: `golive-gate/data/build-contract.json` `allowedStack`. Reference: `code-structure/data/frontend-layout.json`.
+
+Legacy projects (Vibe Start before 2026-10-07) keep their existing frontend (React/Vue); audit against their existing structure as advisory, do not convert.
+
+## Directory layout (`apps/frontend/src/`)
+
+| Directory | Purpose |
+|-----------|---------|
+| `main.ts`, `App.svelte` | Entry and app shell / router |
+| `lib/components/` | Shared UI (PascalCase `.svelte`) |
+| `lib/features/` | Business logic per feature |
+| `lib/stores/` | Global client state (stores or runes `.svelte.ts`) |
+| `lib/layouts/` | Layout wrappers |
+| `lib/utils/` | Frontend-only utilities |
+| `lib/types/` | Frontend-only types |
+| `api/` | Eden treaty client — the only place that calls the backend |
+| `pages/` (or `routes/`) | Route pages — compose features/components |
+
+## Requirements
+
+- `<script lang="ts">` in every component; PascalCase `.svelte` filenames
+- Use `@acme/rnd-svelte.*` components; never hand-roll colours/spacing/type that BLUE DLS defines
+- One state mechanism (stores or runes) — **no second state manager**
+- Business logic → `lib/features/`, not `pages/` or `lib/components/`
+- API calls → `api/` (Eden treaty) only; no raw `fetch` in components
+- Pages compose features and components — keep thin
+- **Max 300 lines per `.svelte` file** — split if larger
+- Shared types with backend → `packages/shared-types`, not local `lib/types/`

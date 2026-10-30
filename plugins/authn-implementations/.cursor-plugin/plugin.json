@@ -1,0 +1,26 @@
+{
+  "name": "authn-implementations",
+  "displayName": "Authn Implementations",
+  "version": "1.5.0",
+  "description": "Apps Gateway authn for downstream apps — X-User-Id identity, secure-by-default paths, /dangerously-skip-login for public routes, no custom login/sessions",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "category": "developer-tools",
+  "keywords": [
+    "authn",
+    "authentication",
+    "apps-gateway",
+    "x-user-id",
+    "sso",
+    "dangerously-skip-login"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "commands": "./commands/",
+  "rules": "./rules/"
+}

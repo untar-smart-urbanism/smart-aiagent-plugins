@@ -1,0 +1,10 @@
+{
+  "name": "golive-gate",
+  "description": "Risk classification and go-live gate per the Non-Tech Change Management playbook. Classifies tools Low/Medium/High, runs the risk-tiered release review checklist, and blocks go-live until approvals, access, and logging requirements in PROJECT.md are satisfied; SRE-owned backup status is an advisory follow-up. Gates go-live on open BLOCKING items in the adoption remediation backlog. Generates and runs test code for the scenario dossier with a bounded severity-driven fix loop. Emits a vibe-release.json release doc recording the gate verdict, cost labels, and app ownership for the evaluated commit. Checks the pipeline build contract via /vibe-conform — fixed command names, Build and run section, tracked coverage, hardened Dockerfile, and a gate record naming HEAD. Orchestrates delivery via /vibe-ship.",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.26.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

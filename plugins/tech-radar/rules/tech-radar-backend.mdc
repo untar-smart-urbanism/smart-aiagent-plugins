@@ -1,0 +1,38 @@
+---
+description: Backend tech radar rules - gap-fillers (messaging, search, cache, storage, logging, infra) and the legacy ring. Core layers come from allowedStack.
+alwaysApply: false
+globs:
+  - "**/package.json"
+  - "**/src/**/*.ts"
+  - "**/src/**/*.js"
+  - "**/drizzle.config.*"
+  - "**/Dockerfile"
+  - "**/docker-compose*.yml"
+---
+
+# Backend tech radar
+
+Applies when editing backend services. Data: `tech-radar/data/backend.json`.
+
+## Core layers - pointer, not a copy
+
+Defined by `allowedStack` in `plugins/golive-gate/data/build-contract.json` (single source of truth): **Bun · TypeScript · Elysia · Drizzle (drizzle-kit) · PostgreSQL** (PGlite for hermetic tests only) · **bun test**. If this file disagrees, `allowedStack` wins.
+
+## Gap-fillers (radar adopt entries)
+
+| Need | Use |
+|------|-----|
+| Search | OpenSearch 2 |
+| Cache | Memcached |
+| Events | Kafka |
+| Object storage | GCS via gcs-implementations |
+| Logging | Pino |
+| Infra | Docker, Kubernetes, Consul, Vault |
+
+## Legacy ring (hold)
+
+Node.js as app runtime, Express, Fastify, NestJS, Prisma Migrate, node-postgres (pg), Jest, Zod are allowed only when the project's PROJECT.md `## Vibe Start` is before 2026-10-07 (maintain existing stack) or a tech-architect approval is recorded in `## Stack Exceptions`. Major improvements (new module/service/workspace, DB migrations/schema changes, runtime/framework/ORM/DB swap, major framework upgrade) always need tech-architect approval, even on the allowed stack.
+
+## Never
+
+MongoDB, DynamoDB, MySQL, MariaDB, SQLite, Java/Spring Boot, Go, Python, RabbitMQ, in-process caches, PostgreSQL <15 - without a recorded tech-architect approval. A user, requester or agent cannot override this.

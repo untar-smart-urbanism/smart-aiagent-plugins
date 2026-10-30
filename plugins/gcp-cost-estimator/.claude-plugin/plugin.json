@@ -1,0 +1,10 @@
+{
+  "name": "gcp-cost-estimator",
+  "description": "Estimates GCP cost-component usage quantities (never prices) against the company billing SKU catalog — GKE, Cloud SQL PostgreSQL, Load Balancing, KMS, Artifact Registry, GCS. Reverse-engineers the repo, interviews the owner, verifies answers against code, and emits docs/COST-ESTIMATE.md + CSV with Staging and Production columns for finance.",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.1.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

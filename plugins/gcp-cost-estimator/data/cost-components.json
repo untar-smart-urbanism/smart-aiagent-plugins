@@ -1,0 +1,624 @@
+{
+  "$schema": "../../schemas/gcp-cost-components.schema.json",
+  "title": "GCP Cost Component Catalog — Usage Quantity Estimation",
+  "version": "1.0.0",
+  "source": "Company GCP billing SKU catalog (finance). The skuDescription strings are verbatim billing-export labels — never reword, abbreviate, or localize them; the CSV must match them character-for-character so finance can VLOOKUP against the billing export.",
+  "region": {
+    "compute": "Jakarta (asia-southeast2)",
+    "gcsBuckets": "Bangkok (asia-southeast1 — 'Standard Storage Bangkok' SKU)",
+    "note": "Compute (GKE, Cloud SQL, Load Balancing) is Jakarta; the GCS bucket SKU in this catalog is Bangkok. Cross-region egress between Bangkok storage and Jakarta compute is NOT a SKU in this catalog — if the code reads/writes GCS on the request path, flag potential cross-region egress as a gap for the owner, do not invent a SKU for it. Region is a company fact encoded here; do not assume a different region from code."
+  },
+  "quantitiesOnlyRule": "This plugin estimates USAGE QUANTITIES only — never prices, rates, currency, or a monthly bill total. Finance owns unit prices and enters them in their own costing sheet against these quantities. If the user asks 'how much will this cost' in money, decline that part, explain that pricing is finance's job, and still deliver the quantities. Producing a money figure would require inventing rates, which are stale the moment they are memorized.",
+  "evidenceRule": "Interview answers are claims, not facts. Verify every answer against the target codebase using each question's codebaseSignals; mark it CONFIRMED, CONTRADICTED (cite file:line), or UNVERIFIABLE. For RESOURCE facts the code settles — replica counts, cpu/memory requests, PVC sizes, which dependencies are present, Service type — evidence wins: if the overlay says 6 replicas and the owner says 2, estimate from 6 and record the conflict. For TRAFFIC, GROWTH, and SIZING the code cannot settle — requests/month, payload sizes, storage growth, DB instance size, image sizes — the owner's number governs; code signals only sanity-check magnitude (an HPA maxReplicas or a rate-limit config caps plausibility) and never replace the owner's figure. An unanswered traffic input keeps its ⚠️ gap, uses the stated default, and is marked UNVERIFIABLE in the doc.",
+  "conventions": {
+    "hoursPerMonth": 730,
+    "hoursNote": "Use 730 hours/month (365*24/12) for every per-hour SKU — cluster-hours, vCPU-hours, GiB-hours, forwarding-rule-hours, HSM-hours. State it once in the doc assumptions.",
+    "gib": "1 GiB = 1024^3 bytes. Convert payload KB to GiB by dividing by 1048576 (1024^2), treating 1 KB as 1 KiB — state this simplification. GCP bills data processing and storage in binary GiB.",
+    "rounding": "Round vCPU counts and node counts UP to whole units (you cannot buy a fractional node). Report GiB-month and GiB to 2 decimals. Round operation counts UP to the nearest 1000. Never round a computed demand quantity DOWN — that would under-provision.",
+    "headroom": "When node-pool machine shapes are NOT pinned in the repo, derive billed node capacity from pod requests divided by binPackingUtilization (default 0.70) to cover system/daemonset pods and bin-packing waste. Always state the factor used. When machine shapes ARE pinned (Terraform google_container_node_pool machine_type, gcloud scripts), use the pinned node count * shape and cite it — do not re-derive.",
+    "environmentColumns": "Every quantity is reported for two environments: Staging and Production. A SKU that does not run in an environment gets quantity 0 with an 'N/A — <reason>' note, never a blank."
+  },
+  "trafficModel": {
+    "description": "Shared usage inputs that multiple cost components derive from. Gather these once in a single interview batch (they are what code cannot reveal), verify magnitude against any code signals, then substitute into the component formulas as $id tokens. Each var is captured per environment unless noted global.",
+    "vars": [
+      {
+        "id": "requests_per_month",
+        "question": "How many HTTP requests per month does each environment serve? (or give average RPS — requests/month = RPS * 2628000)",
+        "unit": "requests/month",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": [
+          "Rate-limiter configs (express-rate-limit, nginx limit_req, API gateway quotas) — a ceiling sanity check",
+          "HPA maxReplicas as an upper bound on sustainable throughput",
+          "Analytics/metrics middleware or existing dashboards that already count requests"
+        ],
+        "defaultHint": { "staging": "5% of production unless the owner gives a figure", "production": null }
+      },
+      {
+        "id": "avg_request_kb",
+        "question": "Average inbound request size in KB (body + headers)? APIs are often 1-5 KB; upload endpoints far larger.",
+        "unit": "KB",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Body-size limits (express.json limit, multer limits, nginx client_max_body_size)", "Upload/multipart handlers imply large requests"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "avg_response_kb",
+        "question": "Average outbound response size in KB? JSON APIs are often 2-20 KB; media/file downloads far larger.",
+        "unit": "KB",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Pagination page sizes", "Endpoints that stream files or proxy media"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "dau",
+        "question": "Daily active users per environment? (optional cross-check: requests/month ≈ DAU * requests-per-user-per-day * 30.4)",
+        "unit": "users/day",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Session/user tables give an order of magnitude only, never live DAU"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "writes_share_pct",
+        "question": "What percentage of requests write data (create/update/delete) versus read? Drives per-write KMS encryption and blind-index operations.",
+        "unit": "percent",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Ratio of mutating routes (POST/PUT/PATCH/DELETE) to GET routes", "Write-heavy queue consumers or ingestion jobs"],
+        "defaultHint": { "staging": "same % as production", "production": "20% if unknown, flagged" }
+      },
+      {
+        "id": "gcs_initial_gib",
+        "question": "How much object data is in Cloud Storage today (or expected at launch), in GiB, per environment?",
+        "unit": "GiB",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["@google-cloud/storage usage confirms a bucket exists; GCS_BUCKET/GCS_FOLDER in .env.example", "What gets uploaded (avatars vs videos) hints at magnitude"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "gcs_growth_gib_per_month",
+        "question": "How many GiB of object storage are added per month, per environment?",
+        "unit": "GiB/month",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Upload frequency implied by feature set; no lifecycle/deletion policy means storage only grows"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "db_provisioned_gib",
+        "question": "Provisioned Cloud SQL storage in GiB per environment today (not used — provisioned; Cloud SQL bills provisioned/auto-grown storage)?",
+        "unit": "GiB",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Migrations/schema hint at data model but never at provisioned size — instance sizing lives in Terraform/gcloud, usually outside the app repo"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "db_growth_gib_per_month",
+        "question": "How many GiB does the database grow per month, per environment? (Cloud SQL auto-storage-increase never shrinks.)",
+        "unit": "GiB/month",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["High-volume insert paths, event/audit tables, retention with no purge job"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "deploys_per_month",
+        "question": "How many image builds/deploys per month push a new image to Artifact Registry?",
+        "unit": "deploys/month",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["CI workflow triggers (on push to main, tags); a docker build+push step in .github/workflows or Jenkinsfile"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "avg_image_size_gib",
+        "question": "Compressed container image size in GiB? Slim Node images ~0.1-0.3 GiB; images with build toolchains or ML libs multiple GiB.",
+        "unit": "GiB",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Base image in Dockerfile (alpine/slim vs full)", "Multi-stage build (smaller final) vs single stage", "Heavy deps (puppeteer, tensorflow) inflate size"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "image_versions_retained",
+        "question": "How many image versions are kept in Artifact Registry (is there a cleanup policy, or do all tags accumulate)?",
+        "unit": "versions",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Artifact Registry cleanup policy in Terraform/gcloud; absence means images accumulate = deploys_per_month * retention_months"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "image_pulls_via_peering_per_month",
+        "question": "How many image pulls per month traverse Carrier Peering egress (pulls to on-prem/office/other-cloud, NOT same-region GKE pulls which are free)?",
+        "unit": "pulls/month",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Same-region GKE node pulls do NOT use this egress; only pulls leaving GCP to a peered network do — this is an infra fact the owner confirms, rarely visible in the app repo"],
+        "defaultHint": { "staging": "0 unless the owner confirms peered pulls", "production": "0 unless the owner confirms peered pulls" }
+      },
+      {
+        "id": "kms_encrypt_ops_per_request",
+        "question": "How many KMS encrypt operations per WRITE request (envelope encryption of a DEK, or direct encrypt calls)?",
+        "unit": "ops/write-request",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["@google-cloud/kms encrypt() calls per write path", "Envelope encryption: encrypt a data key once per record vs per field", "Per-column DEK patterns multiply ops by encrypted-column count"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "kms_decrypt_ops_per_request",
+        "question": "How many KMS decrypt operations per READ request (before any DEK caching)?",
+        "unit": "ops/read-request",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["kms decrypt() calls on read paths", "A DEK cache (in-memory/Redis) sharply reduces effective decrypt ops — see dek_cache_hit_pct"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "kms_mac_ops_per_request",
+        "question": "How many KMS MAC operations per request (HMAC for a blind index / searchable-encryption lookup token)?",
+        "unit": "ops/request",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["kms macSign()/macVerify() calls", "Blind-index or searchable-encryption code computes an HMAC per indexed field on write and per lookup on read"],
+        "defaultHint": { "staging": null, "production": null }
+      },
+      {
+        "id": "dek_cache_hit_pct",
+        "question": "What fraction of decrypt operations are served from a DEK cache (so they never hit KMS)?",
+        "unit": "percent",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["A DEK/key cache (LRU, Redis, in-memory Map with TTL) around decrypt", "If DEK-caching code is present, default 90%; if absent, 0% (every decrypt hits KMS)"],
+        "defaultHint": { "staging": "90 if DEK caching found in code, else 0", "production": "90 if DEK caching found in code, else 0" }
+      },
+      {
+        "id": "avg_replicas_steady_state",
+        "question": "For HPA-scaled workloads, what is the steady-state AVERAGE replica count (not the max)? GKE bills the nodes actually running, so average matters, not the HPA ceiling.",
+        "unit": "replicas",
+        "perEnvironment": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["HPA minReplicas/maxReplicas bound the range; the average sits between them and depends on real load", "Fixed replica counts in Deployment specs need no estimate — use them directly (evidence wins)"],
+        "defaultHint": { "staging": "1 (no HPA in staging by convention)", "production": "HPA minReplicas if the owner has no better figure, flagged" }
+      },
+      {
+        "id": "retention_months",
+        "question": "How many months of built images are retained before cleanup (used with deploys_per_month when there is no explicit version cap)?",
+        "unit": "months",
+        "perEnvironment": false,
+        "ownerConfirmed": true,
+        "codebaseSignals": ["Cleanup-policy age thresholds if present; otherwise ask"],
+        "defaultHint": { "staging": "equal to horizon_months if no policy", "production": "equal to horizon_months if no policy" }
+      },
+      {
+        "id": "horizon_months",
+        "question": "What month-N horizon should storage quantities be reported at (storage grows over time — a point-in-time month is needed)? Default 12.",
+        "unit": "months",
+        "perEnvironment": false,
+        "global": true,
+        "ownerConfirmed": true,
+        "codebaseSignals": [],
+        "defaultHint": { "staging": "12", "production": "12" }
+      },
+      {
+        "id": "binPackingUtilization",
+        "question": "What node bin-packing utilization to assume when node pools are not pinned in the repo (billed node capacity = pod requests / this factor)? Default 0.70.",
+        "unit": "ratio",
+        "perEnvironment": false,
+        "global": true,
+        "ownerConfirmed": false,
+        "codebaseSignals": ["Pinned node pools (Terraform machine_type + node count) override this entirely — use the pinned capacity"],
+        "defaultHint": { "staging": "0.70", "production": "0.70" }
+      }
+    ]
+  },
+  "environments": {
+    "staging": {
+      "defaults": "Zonal Kubernetes cluster; 1 replica per workload, no HPA; smallest node set that fits pod requests; Cloud SQL zonal (single instance) unless the owner says HA; traffic defaults to 5% of production unless the owner gives a figure.",
+      "note": "Staging defaults are starting assumptions, not evidence. If the repo has a staging overlay (kustomize overlays/staging, values-staging.yaml), that overlay is evidence and wins over these defaults."
+    },
+    "production": {
+      "defaults": "Regional Kubernetes cluster; replicas from manifest/overlay, HPA-scaled workloads use owner-confirmed steady-state average (never maxReplicas); Cloud SQL Regional (HA); storage reported at horizon_months.",
+      "note": "Production overlay/values files are evidence and win over these defaults."
+    }
+  },
+  "components": [
+    {
+      "id": "gke-cluster-zonal",
+      "service": "GKE",
+      "skuDescription": "Zonal Kubernetes Clusters",
+      "unit": "cluster-hour",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["number of zonal clusters per environment"],
+      "formula": "zonal_clusters * 730",
+      "formulaNote": "GKE Standard charges a per-cluster management fee per hour. By company convention staging runs a zonal cluster (default 1) and production runs a regional cluster (so production zonal = 0). One zonal cluster per billing account is free — that is a pricing discount finance applies, not a quantity change; still report the cluster-hours.",
+      "codebaseSignals": [
+        "Cluster topology is usually in Terraform (google_container_cluster location = a zone like asia-southeast2-a vs the region asia-southeast2) or gcloud scripts, often outside the app repo",
+        "A single-zone location string implies zonal; a region string implies regional"
+      ],
+      "interviewQuestions": ["Does this environment run a zonal or regional GKE cluster?", "How many clusters in this environment?"],
+      "perEnvironment": { "staging": "1 zonal cluster by default", "production": "0 — production is regional by convention (see gke-cluster-regional)" },
+      "appliesWhen": "The app deploys to GKE (k8s manifests present; company standard is GKE + WIF).",
+      "notApplicable": "N/A — no Kubernetes deployment found (confirm with owner)."
+    },
+    {
+      "id": "gke-cluster-regional",
+      "service": "GKE",
+      "skuDescription": "Regional Kubernetes Clusters",
+      "unit": "cluster-hour",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["number of regional clusters per environment"],
+      "formula": "regional_clusters * 730",
+      "formulaNote": "Production runs a regional (multi-zone control plane) cluster by convention; staging regional = 0 unless the owner says otherwise.",
+      "codebaseSignals": ["google_container_cluster with a region (asia-southeast2) rather than a zone; gke autopilot/standard regional flags in deploy scripts"],
+      "interviewQuestions": ["Is production on a regional cluster (recommended for HA)?", "How many regional clusters?"],
+      "perEnvironment": { "staging": "0 by default — staging is zonal", "production": "1 regional cluster by default" },
+      "appliesWhen": "The app deploys to GKE.",
+      "notApplicable": "N/A — no Kubernetes deployment found (confirm with owner)."
+    },
+    {
+      "id": "gke-e2-core",
+      "service": "GKE",
+      "skuDescription": "E2 Custom Instance Core running in Jakarta",
+      "unit": "vCPU-hour",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["workload cpu requests", "replicas / HPA steady-state average", "pinned node machine shape if present", "$binPackingUtilization"],
+      "formula": "node_vCPUs * 730 ; node_vCPUs = (pinned: sum(node_count * machine_vCPUs)) OR (derived: ceil( sum(replicas * cpu_request_cores) / $binPackingUtilization ))",
+      "formulaNote": "GKE bills the underlying node VM vCPUs, not pod requests. Pod cpu requests are the demand signal; the billed quantity is node vCPUs. HPA-scaled workloads use $avg_replicas_steady_state, not maxReplicas. Reconcile with gke-e2-ram: E2 custom requires between 0.5 and 8 GiB RAM per vCPU.",
+      "codebaseSignals": [
+        "Deployment/StatefulSet spec.template.spec.containers[].resources.requests.cpu and spec.replicas (include kustomize overlays/{staging,production} and helm values-*.yaml)",
+        "HorizontalPodAutoscaler minReplicas/maxReplicas",
+        "Terraform google_container_node_pool node_config.machine_type + node_count, or gcloud container node-pools create"
+      ],
+      "interviewQuestions": ["Steady-state average replicas for HPA workloads per environment?", "Any node-pool machine type/count already decided?"],
+      "perEnvironment": { "staging": "1 replica per workload, no HPA; smallest node set that fits", "production": "manifest/overlay replicas; HPA -> owner-confirmed average" },
+      "appliesWhen": "GKE workloads with cpu requests are defined.",
+      "notApplicable": "N/A — no Kubernetes workloads with cpu requests found (confirm with owner)."
+    },
+    {
+      "id": "gke-e2-ram",
+      "service": "GKE",
+      "skuDescription": "E2 Custom Instance Ram running in Jakarta",
+      "unit": "GiB-hour",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["workload memory requests", "replicas / HPA steady-state average", "pinned node machine shape if present", "$binPackingUtilization"],
+      "formula": "node_RAM_GiB * 730 ; node_RAM_GiB = (pinned: sum(node_count * machine_RAM_GiB)) OR (derived: ceil( sum(replicas * mem_request_GiB) / $binPackingUtilization ))",
+      "formulaNote": "Billed on node RAM, mirroring gke-e2-core. Convert memory requests to GiB (Mi/1024, Gi as-is). E2 custom RAM must be 0.5-8 GiB per vCPU — if derived RAM/vCPU falls outside that band, note that the real node shape will be clamped and the quantities are an approximation.",
+      "codebaseSignals": [
+        "resources.requests.memory in Deployment/StatefulSet specs and overlays/values files (units Mi/Gi)",
+        "Terraform machine_type custom-<vCPU>-<MB> encodes both core and RAM"
+      ],
+      "interviewQuestions": ["Same steady-state replica figures as cores; any memory-optimized node choice?"],
+      "perEnvironment": { "staging": "1 replica per workload, no HPA", "production": "manifest/overlay replicas; HPA -> owner-confirmed average" },
+      "appliesWhen": "GKE workloads with memory requests are defined.",
+      "notApplicable": "N/A — no Kubernetes workloads with memory requests found (confirm with owner)."
+    },
+    {
+      "id": "gke-pd-balanced",
+      "service": "GKE",
+      "skuDescription": "Balanced PD Capacity in Jakarta",
+      "unit": "GiB-month",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["PersistentVolumeClaim sizes", "node boot disks"],
+      "formula": "sum(PVC storage requests GiB) + node_count * boot_disk_GiB",
+      "formulaNote": "Balanced Persistent Disk is billed on PROVISIONED capacity (GiB-month), not used bytes. Include PVCs and node boot disks (default 100 GiB/node if not pinned). This is a stock, not a per-hour rate.",
+      "codebaseSignals": [
+        "PersistentVolumeClaim spec.resources.requests.storage; StatefulSet volumeClaimTemplates",
+        "StorageClass type pd-balanced",
+        "Node boot disk size in Terraform node_config.disk_size_gb (default 100 if absent)"
+      ],
+      "interviewQuestions": ["Boot disk size per node if not pinned?", "Any large PVCs beyond what the manifests show?"],
+      "perEnvironment": { "staging": "PVCs in staging overlay + staging node boot disks", "production": "PVCs in production overlay + production node boot disks" },
+      "appliesWhen": "The cluster provisions Persistent Disks (PVCs or node boot disks — always true for GKE nodes).",
+      "notApplicable": "N/A — no GKE deployment (confirm with owner)."
+    },
+    {
+      "id": "sql-vcpu",
+      "service": "Cloud SQL PostgreSQL",
+      "skuDescription": "Cloud SQL for PostgreSQL: Regional - vCPU in Jakarta",
+      "unit": "vCPU-hour",
+      "unitConfidence": "verify-with-billing-export",
+      "unitNote": "This is the Regional (HA) SKU. HA runs a standby, and in some billing exports the vCPU quantity is reported once per instance while the HA premium is in the rate, in others it is doubled for the standby. Report vCPUs * 730 for the primary and flag: confirm against a billing export whether the standby vCPUs appear as separate quantity. Do NOT silently double.",
+      "drivers": ["Cloud SQL instance vCPU count"],
+      "formula": "instance_vCPUs * 730",
+      "formulaNote": "Cloud SQL bills vCPU-hours for the running instance. Instance sizing (db-custom-<vCPU>-<MB>) is provisioned in Terraform/gcloud, usually outside the app repo — ask the owner.",
+      "codebaseSignals": [
+        "drizzle-orm (with a pg/postgres driver) / pg / prisma / typeorm / sequelize / knex dependency and a DATABASE_URL / PG* env in .env.example confirm a PostgreSQL instance exists",
+        "@electric-sql/pglite is test-only (in-process) and is not a Cloud SQL signal; ignore it when sizing",
+        "Instance tier (db-custom-2-7680) lives in Terraform google_sql_database_instance or gcloud sql instances create — cite it if in-repo"
+      ],
+      "interviewQuestions": ["Cloud SQL instance vCPU count per environment?", "Is production HA/Regional and staging zonal, or both regional?"],
+      "perEnvironment": { "staging": "smaller instance; often zonal — confirm whether the Regional SKU even applies to staging", "production": "Regional (HA) instance vCPUs" },
+      "appliesWhen": "A PostgreSQL client dependency and a DB connection config are present.",
+      "notApplicable": "N/A — no PostgreSQL/Cloud SQL usage found (confirm with owner)."
+    },
+    {
+      "id": "sql-ram",
+      "service": "Cloud SQL PostgreSQL",
+      "skuDescription": "Cloud SQL for PostgreSQL: Regional - RAM in Jakarta",
+      "unit": "GiB-hour",
+      "unitConfidence": "verify-with-billing-export",
+      "unitNote": "Same HA caveat as sql-vcpu — confirm whether the standby RAM is a separate quantity line in the billing export before doubling.",
+      "drivers": ["Cloud SQL instance RAM"],
+      "formula": "instance_RAM_GiB * 730",
+      "formulaNote": "Cloud SQL bills memory GiB-hours. Instance RAM is set by the tier — ask the owner if not in-repo.",
+      "codebaseSignals": ["Instance tier RAM component (db-custom-<vCPU>-<MB>) in Terraform/gcloud if present"],
+      "interviewQuestions": ["Cloud SQL instance RAM (GiB) per environment?"],
+      "perEnvironment": { "staging": "smaller instance RAM", "production": "Regional (HA) instance RAM" },
+      "appliesWhen": "A PostgreSQL client dependency and a DB connection config are present.",
+      "notApplicable": "N/A — no PostgreSQL/Cloud SQL usage found (confirm with owner)."
+    },
+    {
+      "id": "sql-storage",
+      "service": "Cloud SQL PostgreSQL",
+      "skuDescription": "Cloud SQL for PostgreSQL: Regional - Standard storage in Jakarta",
+      "unit": "GiB-month",
+      "unitConfidence": "high",
+      "unitNote": "'Standard storage' is the Cloud SQL storage SKU naming; quantity semantics (provisioned GiB-month) are clear. Note if the instance uses SSD vs HDD only affects the SKU label, not the quantity.",
+      "drivers": ["provisioned DB storage", "monthly growth", "$horizon_months"],
+      "formula": "$db_provisioned_gib + $db_growth_gib_per_month * $horizon_months",
+      "formulaNote": "Cloud SQL bills PROVISIONED storage (auto-increase never shrinks), so report the provisioned/grown size at the horizon month, not live data volume.",
+      "codebaseSignals": ["Schema/migration files confirm a database exists but never reveal provisioned size or growth rate"],
+      "interviewQuestions": ["Provisioned storage today and monthly growth per environment?"],
+      "perEnvironment": { "staging": "staging provisioned storage at horizon", "production": "production provisioned storage at horizon" },
+      "appliesWhen": "A PostgreSQL/Cloud SQL instance is present.",
+      "notApplicable": "N/A — no PostgreSQL/Cloud SQL usage found (confirm with owner)."
+    },
+    {
+      "id": "lb-alb-inbound",
+      "service": "Cloud Load Balancing",
+      "skuDescription": "Regional External Application Load Balancer Inbound Data Processing for Jakarta (asia-southeast2)",
+      "unit": "GiB",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["$requests_per_month", "$avg_request_kb"],
+      "formula": "($requests_per_month * $avg_request_kb) / 1048576",
+      "formulaNote": "Regional external ALB bills data processed. Inbound = total request bytes through the load balancer, converted KB->GiB by /1048576.",
+      "codebaseSignals": [
+        "Kubernetes Ingress or Gateway API resources, GKE Ingress annotations (kubernetes.io/ingress.class), BackendConfig",
+        "An HTTP(S) app behind the LB (any web server) confirms an ALB path"
+      ],
+      "interviewQuestions": ["Confirmed via the traffic model (requests/month, request size)."],
+      "perEnvironment": { "staging": "staging requests * staging request size", "production": "production requests * production request size" },
+      "appliesWhen": "Traffic reaches the app through an external Application Load Balancer (Ingress/Gateway present).",
+      "notApplicable": "N/A — no external Application Load Balancer / Ingress found (confirm with owner)."
+    },
+    {
+      "id": "lb-alb-outbound",
+      "service": "Cloud Load Balancing",
+      "skuDescription": "Regional External Application Load Balancer Outbound Data Processing for Jakarta (asia-southeast2)",
+      "unit": "GiB",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["$requests_per_month", "$avg_response_kb"],
+      "formula": "($requests_per_month * $avg_response_kb) / 1048576",
+      "formulaNote": "Outbound = total response bytes through the ALB, KB->GiB by /1048576. Responses are usually larger than requests, so this typically exceeds inbound.",
+      "codebaseSignals": ["Same Ingress/Gateway signals as lb-alb-inbound", "File/media streaming endpoints inflate response volume"],
+      "interviewQuestions": ["Confirmed via the traffic model (requests/month, response size)."],
+      "perEnvironment": { "staging": "staging requests * staging response size", "production": "production requests * production response size" },
+      "appliesWhen": "Traffic reaches the app through an external Application Load Balancer.",
+      "notApplicable": "N/A — no external Application Load Balancer / Ingress found (confirm with owner)."
+    },
+    {
+      "id": "lb-nlb-fwd-rule",
+      "service": "Cloud Load Balancing",
+      "skuDescription": "Regional External Proxy Network Load Balancer Forwarding Rule Minimum for Jakarta (asia-southeast2)",
+      "unit": "hour",
+      "unitConfidence": "verify-with-billing-export",
+      "unitNote": "Billed per forwarding-rule-hour, but GCP historically bills a MINIMUM covering the first N forwarding rules per project (commonly 5) and then per-rule beyond that. Report forwarding_rules * 730 and flag: confirm whether the project's rule count is within the bundled minimum (so effectively a flat minimum) or billed per additional rule.",
+      "drivers": ["number of external proxy-NLB forwarding rules per environment"],
+      "formula": "forwarding_rules * 730",
+      "formulaNote": "Applies only to an external PROXY Network Load Balancer (TCP/TLS proxy), not the Application LB. Many apps use only the ALB and have zero proxy-NLB rules.",
+      "codebaseSignals": [
+        "Service type: LoadBalancer (L4) as opposed to Ingress (L7 ALB)",
+        "TCP/TLS (non-HTTP) exposed ports; a proxy-NLB forwarding rule in Terraform google_compute_forwarding_rule with load_balancing_scheme EXTERNAL_MANAGED and a target proxy"
+      ],
+      "interviewQuestions": ["Does this app use an external proxy Network Load Balancer (L4), or only the Application LB?", "How many forwarding rules?"],
+      "perEnvironment": { "staging": "0 unless a Service type LoadBalancer / proxy-NLB is in the staging overlay", "production": "forwarding-rule count if a proxy-NLB is used" },
+      "appliesWhen": "An external proxy Network Load Balancer forwarding rule exists.",
+      "notApplicable": "N/A — app uses the Application Load Balancer only; no proxy-NLB forwarding rule found (confirm with owner)."
+    },
+    {
+      "id": "kms-ver-mac",
+      "service": "Cloud KMS",
+      "skuDescription": "Active software MAC key versions",
+      "unit": "key-version-month",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["number of MAC (HMAC) keys", "versions retained per key"],
+      "formula": "mac_keys * versions_per_key",
+      "formulaNote": "Billed per ACTIVE key version per month. Rotation accumulates versions until old ones are destroyed/disabled, so retained versions (not just current) count.",
+      "codebaseSignals": [
+        "@google-cloud/kms MAC key usage (macSign/macVerify); a CryptoKey with purpose MAC",
+        "Blind-index / searchable-encryption code implies at least one MAC key",
+        "Key rotation period (Terraform rotation_period) drives how many versions accumulate"
+      ],
+      "interviewQuestions": ["How many MAC keys and how many versions are kept per key (rotation + retention)?"],
+      "perEnvironment": { "staging": "MAC keys in the staging key ring", "production": "MAC keys in the production key ring" },
+      "appliesWhen": "A KMS MAC key (blind index / HMAC) is used.",
+      "notApplicable": "N/A — no KMS MAC key usage found (confirm with owner)."
+    },
+    {
+      "id": "kms-ver-sym",
+      "service": "Cloud KMS",
+      "skuDescription": "Active software symmetric key versions",
+      "unit": "key-version-month",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["number of symmetric keys (KEKs)", "versions retained per key"],
+      "formula": "symmetric_keys * versions_per_key",
+      "formulaNote": "Envelope encryption typically uses one symmetric KEK per data domain; per-column-DEK designs still wrap DEKs under a small number of KEKs. Count active versions including retained rotations.",
+      "codebaseSignals": [
+        "@google-cloud/kms encrypt/decrypt against a symmetric CryptoKey (purpose ENCRYPT_DECRYPT)",
+        "Envelope encryption / per-column DEK code (a KEK wrapping DEKs)",
+        "Terraform google_kms_crypto_key with rotation_period"
+      ],
+      "interviewQuestions": ["How many symmetric KEKs and versions per key?"],
+      "perEnvironment": { "staging": "symmetric keys in staging key ring", "production": "symmetric keys in production key ring" },
+      "appliesWhen": "A KMS symmetric key is used.",
+      "notApplicable": "N/A — no KMS symmetric key usage found (confirm with owner)."
+    },
+    {
+      "id": "kms-ver-asym",
+      "service": "Cloud KMS",
+      "skuDescription": "Active software asymmetric key versions",
+      "unit": "key-version-month",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["number of asymmetric keys", "versions retained per key"],
+      "formula": "asymmetric_keys * versions_per_key",
+      "formulaNote": "Asymmetric keys are used for signing (JWT/asymmetric sign) or asymmetric decrypt. Many apps have none.",
+      "codebaseSignals": ["kms asymmetricSign/asymmetricDecrypt; a CryptoKey with purpose ASYMMETRIC_SIGN or ASYMMETRIC_DECRYPT", "JWT signing with a KMS-held private key"],
+      "interviewQuestions": ["Any asymmetric KMS keys (signing/asymmetric decrypt), and versions per key?"],
+      "perEnvironment": { "staging": "asymmetric keys in staging key ring", "production": "asymmetric keys in production key ring" },
+      "appliesWhen": "A KMS asymmetric key is used.",
+      "notApplicable": "N/A — no KMS asymmetric key usage found (confirm with owner)."
+    },
+    {
+      "id": "kms-ops-sym",
+      "service": "Cloud KMS",
+      "skuDescription": "Cryptographic operations with a software symmetric key",
+      "unit": "operation",
+      "unitConfidence": "high",
+      "unitNote": "Report the RAW operation count. KMS prices these per 10,000 operations, but that division is a pricing step finance applies — do not pre-divide the quantity.",
+      "drivers": ["$requests_per_month", "$writes_share_pct", "$kms_encrypt_ops_per_request", "$kms_decrypt_ops_per_request", "$dek_cache_hit_pct"],
+      "formula": "writes * $kms_encrypt_ops_per_request + reads * $kms_decrypt_ops_per_request * (1 - $dek_cache_hit_pct/100) ; writes = $requests_per_month * $writes_share_pct/100 ; reads = $requests_per_month - writes",
+      "formulaNote": "Symmetric encrypt/decrypt operation count. A DEK cache means most reads never call KMS — apply dek_cache_hit_pct to the decrypt term. Per-column-DEK designs raise ops_per_request.",
+      "codebaseSignals": ["kms encrypt()/decrypt() call sites on write/read paths", "DEK cache presence -> dek_cache_hit_pct > 0"],
+      "interviewQuestions": ["Confirmed via traffic model (requests, write share, ops-per-request, cache hit rate)."],
+      "perEnvironment": { "staging": "staging traffic-derived", "production": "production traffic-derived" },
+      "appliesWhen": "A KMS symmetric key performs encrypt/decrypt on request paths.",
+      "notApplicable": "N/A — no KMS symmetric crypto operations found (confirm with owner)."
+    },
+    {
+      "id": "kms-ops-mac",
+      "service": "Cloud KMS",
+      "skuDescription": "Cryptographic operations with a software MAC key",
+      "unit": "operation",
+      "unitConfidence": "high",
+      "unitNote": "Report raw operation count (finance divides by 10,000 for pricing).",
+      "drivers": ["$requests_per_month", "$writes_share_pct", "$kms_mac_ops_per_request"],
+      "formula": "(writes + indexed_reads) * $kms_mac_ops_per_request ; writes = $requests_per_month * $writes_share_pct/100 ; indexed_reads = reads that perform a blind-index lookup (share of reads, owner-confirmed)",
+      "formulaNote": "Blind index computes an HMAC (a MAC op) per indexed field on write, and per lookup on read. If only writes are indexed, drop the indexed_reads term.",
+      "codebaseSignals": ["kms macSign()/macVerify() call sites", "Blind-index write and lookup paths"],
+      "interviewQuestions": ["What share of reads do a blind-index lookup, and how many indexed fields per write?"],
+      "perEnvironment": { "staging": "staging traffic-derived", "production": "production traffic-derived" },
+      "appliesWhen": "A KMS MAC key computes blind-index HMACs.",
+      "notApplicable": "N/A — no KMS MAC operations found (confirm with owner)."
+    },
+    {
+      "id": "kms-ops-asym",
+      "service": "Cloud KMS",
+      "skuDescription": "Software asymmetric cryptographic operations",
+      "unit": "operation",
+      "unitConfidence": "high",
+      "unitNote": "Report raw operation count (finance divides by 10,000 for pricing).",
+      "drivers": ["asymmetric sign/verify volume"],
+      "formula": "asymmetric_ops_per_month (owner-confirmed sign/verify/decrypt volume)",
+      "formulaNote": "E.g. one asymmetric sign per issued token. Tie to the operation that triggers it (logins/month, tokens/month).",
+      "codebaseSignals": ["kms asymmetricSign/asymmetricDecrypt call sites; token issuance paths"],
+      "interviewQuestions": ["How many asymmetric operations per month (e.g. token signings)?"],
+      "perEnvironment": { "staging": "staging volume", "production": "production volume" },
+      "appliesWhen": "A KMS asymmetric key performs operations.",
+      "notApplicable": "N/A — no KMS asymmetric operations found (confirm with owner)."
+    },
+    {
+      "id": "kms-hsm",
+      "service": "Cloud KMS",
+      "skuDescription": "Active single tenant HSM instances",
+      "unit": "instance-hour",
+      "unitConfidence": "verify-with-billing-export",
+      "unitNote": "Single-tenant HSM is a specialized offering distinct from standard HSM-protection-level keys. The billing unit (instance-hour vs a monthly reservation) must be confirmed against a billing export. Default this component to N/A unless the owner confirms dedicated single-tenant HSM instances — standard apps do not use them.",
+      "drivers": ["number of single-tenant HSM instances"],
+      "formula": "hsm_instances * 730",
+      "formulaNote": "Only applies if the org reserves dedicated single-tenant HSM instances. HSM-protection-level KMS keys (protectionLevel HSM) are billed as key versions/ops, NOT as this SKU — do not conflate them.",
+      "codebaseSignals": ["Rarely in the app repo; protectionLevel HSM on a CryptoKey is NOT this SKU. This is an infrastructure reservation the owner confirms."],
+      "interviewQuestions": ["Does the org reserve dedicated single-tenant Cloud HSM instances for this app? (Usually no.)"],
+      "perEnvironment": { "staging": "0 by default", "production": "0 by default unless owner confirms" },
+      "appliesWhen": "The org reserves single-tenant HSM instances.",
+      "notApplicable": "N/A — no single-tenant HSM instances (default; confirm with owner)."
+    },
+    {
+      "id": "kms-acl-sub",
+      "service": "Cloud KMS",
+      "skuDescription": "Cloud KMS Key Access Control List Service Subscription",
+      "unit": "subscription-month",
+      "unitConfidence": "verify-with-billing-export",
+      "unitNote": "A service subscription line rather than a usage metric. Quantity is 1 (enabled) or 0/N/A (not enabled) per environment; confirm the exact billing granularity and whether it is per-project or per-key-ring against a billing export.",
+      "drivers": ["whether the KMS ACL service subscription is enabled"],
+      "formula": "1 if the KMS ACL service subscription is enabled for this environment, else 0",
+      "formulaNote": "This is a subscription toggle, not traffic-driven. Default N/A unless the owner confirms it is enabled.",
+      "codebaseSignals": ["Not visible in app code — a project/org-level KMS setting the owner confirms."],
+      "interviewQuestions": ["Is the Cloud KMS Key ACL service subscription enabled for this project?"],
+      "perEnvironment": { "staging": "0/N/A unless enabled", "production": "0/N/A unless enabled" },
+      "appliesWhen": "The KMS Key ACL service subscription is enabled.",
+      "notApplicable": "N/A — KMS Key ACL service subscription not enabled (default; confirm with owner)."
+    },
+    {
+      "id": "ar-storage",
+      "service": "Artifact Registry",
+      "skuDescription": "Artifact Registry Storage",
+      "unit": "GiB-month",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["$avg_image_size_gib", "$image_versions_retained", "$deploys_per_month", "$retention_months"],
+      "formula": "$image_versions_retained * $avg_image_size_gib ; where $image_versions_retained = explicit cap if a cleanup policy exists, else $deploys_per_month * $retention_months",
+      "formulaNote": "Artifact Registry bills stored GiB-month. Layer sharing between image versions means real storage is often LESS than versions*size — this is a conservative upper bound; note that. A registry is frequently SHARED across environments; if so, record the total under Production and 0 under Staging with a note, to avoid double counting.",
+      "codebaseSignals": [
+        "Dockerfile (image is built) + CI push to *-docker.pkg.dev in .github/workflows / Jenkinsfile / cloudbuild.yaml",
+        "Artifact Registry cleanup policy (Terraform google_artifact_registry_repository cleanup_policies) caps retained versions"
+      ],
+      "interviewQuestions": ["Deploys/month, image size, and retained versions (or is there a cleanup policy)?", "Is the registry shared across environments?"],
+      "perEnvironment": { "staging": "staging image versions * size (or 0 if a single shared registry is counted under production)", "production": "production/shared image versions * size" },
+      "appliesWhen": "The app builds and pushes container images to Artifact Registry.",
+      "notApplicable": "N/A — no container image build/push to Artifact Registry found (confirm with owner)."
+    },
+    {
+      "id": "ar-egress-peering",
+      "service": "Artifact Registry",
+      "skuDescription": "Artifact Registry Network Egress via Carrier Peering Network - Asia Pacific Based",
+      "unit": "GiB",
+      "unitConfidence": "medium",
+      "unitNote": "The per-GiB egress unit is clear; what is uncertain is WHICH pulls traverse carrier peering. Same-region GKE node pulls are free and do NOT count. This covers pulls leaving GCP to a peered network (on-prem, office, another cloud). Which pulls those are is owner-confirmed infra, not a code fact.",
+      "drivers": ["$image_pulls_via_peering_per_month", "$avg_image_size_gib"],
+      "formula": "$image_pulls_via_peering_per_month * $avg_image_size_gib",
+      "formulaNote": "Default 0 unless the owner confirms image pulls that egress over carrier peering. Do not assume in-cluster GKE pulls incur this — they are same-region and free.",
+      "codebaseSignals": ["Not determinable from the app repo — depends on where images are pulled to. Owner-confirmed."],
+      "interviewQuestions": ["Are images pulled to any on-prem/office/other-cloud target over carrier peering? If so, how many pulls/month?"],
+      "perEnvironment": { "staging": "0 unless owner confirms peered pulls", "production": "0 unless owner confirms peered pulls" },
+      "appliesWhen": "Image pulls egress Artifact Registry over the Asia-Pacific carrier peering network.",
+      "notApplicable": "N/A — no carrier-peering image egress (default; confirm with owner)."
+    },
+    {
+      "id": "gcs-standard",
+      "service": "Cloud Storage",
+      "skuDescription": "Standard Storage Bangkok",
+      "unit": "GiB-month",
+      "unitConfidence": "high",
+      "unitNote": null,
+      "drivers": ["$gcs_initial_gib", "$gcs_growth_gib_per_month", "$horizon_months"],
+      "formula": "$gcs_initial_gib + $gcs_growth_gib_per_month * $horizon_months",
+      "formulaNote": "Standard-class object storage billed GiB-month, reported at the horizon month. This catalog SKU is the Bangkok location — note the Bangkok bucket vs Jakarta compute split and flag any request-path GCS access as potential cross-region egress (not a SKU here).",
+      "codebaseSignals": [
+        "@google-cloud/storage dependency and usage (upload/download/getSignedUrl)",
+        "GCS_BUCKET / GCS_FOLDER / GCS_PROJECT_ID in .env.example (company GCS env model)",
+        "What is stored (user uploads, exports, backups) hints at growth"
+      ],
+      "interviewQuestions": ["Current/launch object volume and monthly growth per environment?"],
+      "perEnvironment": { "staging": "staging bucket volume at horizon", "production": "production bucket volume at horizon" },
+      "appliesWhen": "The app stores objects in Google Cloud Storage.",
+      "notApplicable": "N/A — no Google Cloud Storage usage found (confirm with owner)."
+    }
+  ]
+}

@@ -1,0 +1,503 @@
+{
+  "title": "Build Contract & Repo Conformance",
+  "source": "vibe-code-and-deploy phases 1, 2 and 5 — the fixed command set, the repo's own `## Build and run` section, and the deployment assets whose absence is silent",
+  "version": "1.3.0",
+  "principle": "Every rule here is already stated in prose in the vibe-code-and-deploy skill, and every one of them was missed by at least one app delivered on that skill. Prose is what drifted; these are the same rules written so a command can check them. A check that cannot be evaluated from the repository is not in this file.",
+  "allowedStack": {
+    "sourceOfTruth": "This block is the single, current statement of the company's allowed application stack. Every other plugin (tech-radar, code-structure, code-review, project-scaffold, vibe-code-and-deploy, vibe-ship) refers to it and never restates a different stack as authoritative. When prose elsewhere disagrees with this block, this block wins and the prose is a defect to fix.",
+    "effectiveFrom": "2026-10-07",
+    "layers": [
+      {
+        "layer": "Runtime & package manager",
+        "stack": "Bun",
+        "packages": [
+          "bun"
+        ],
+        "note": "`bun install --frozen-lockfile`; `bun.lock` is the lockfile."
+      },
+      {
+        "layer": "Language",
+        "stack": "TypeScript",
+        "packages": [
+          "typescript"
+        ]
+      },
+      {
+        "layer": "Backend",
+        "stack": "Elysia on Bun",
+        "packages": [
+          "elysia"
+        ],
+        "note": "Eden treaty / TypeBox for typed routes and validation — no second validator."
+      },
+      {
+        "layer": "ORM & migrations",
+        "stack": "Drizzle",
+        "packages": [
+          "drizzle-orm",
+          "drizzle-kit"
+        ]
+      },
+      {
+        "layer": "Database",
+        "stack": "PostgreSQL",
+        "packages": [
+          "postgres"
+        ],
+        "note": "PGlite (@electric-sql/pglite) is allowed only as the hermetic test database."
+      },
+      {
+        "layer": "Frontend",
+        "stack": "Svelte + TypeScript, bundled with Vite",
+        "packages": [
+          "svelte",
+          "vite",
+          "svelte-check"
+        ]
+      },
+      {
+        "layer": "UI components",
+        "stack": "@acme/rnd-svelte.*",
+        "packages": [
+          "@acme/rnd-svelte.*"
+        ],
+        "note": "Via ui-dev:rnd-svelte-implementor. The component set, not an open choice."
+      },
+      {
+        "layer": "Unit tests",
+        "stack": "bun test",
+        "packages": [],
+        "note": "The hermetic suite."
+      },
+      {
+        "layer": "Browser journeys",
+        "stack": "Playwright",
+        "packages": [
+          "@playwright/test"
+        ],
+        "note": "The only sanctioned second runner."
+      }
+    ],
+    "designSystem": {
+      "rule": "Design tokens and design language stay BLUE DLS (the Vue design system) for every stack. `@acme/blue-design-tokens` plus the BLUE DLS foundations — colour, typography, spacing, iconography (BLUE Icon) and patterns (BLUE Pattern Library) — are the visual source of truth. rnd-svelte components are themed by these tokens; never hand-roll colours, spacing or type scales that BLUE DLS already defines.",
+      "tokens": "@acme/blue-design-tokens",
+      "componentsByFramework": {
+        "svelte": "@acme/rnd-svelte.*",
+        "vue": "BLUE DLS Vue 3 components — legacy (pre-cutoff) projects only"
+      }
+    },
+    "notAllowedWithoutApproval": {
+      "note": "Using any of these in a project requires a recorded tech-architect approval (see stackExceptions). Matching is on package.json dependency names in the root and every workspace.",
+      "packages": [
+        {
+          "match": [
+            "express",
+            "fastify",
+            "@nestjs/core",
+            "koa",
+            "@hapi/hapi"
+          ],
+          "instead": "elysia"
+        },
+        {
+          "match": [
+            "prisma",
+            "@prisma/client",
+            "typeorm",
+            "sequelize",
+            "knex",
+            "mongoose"
+          ],
+          "instead": "drizzle-orm"
+        },
+        {
+          "match": [
+            "pg",
+            "mysql",
+            "mysql2",
+            "mongodb",
+            "sqlite3",
+            "better-sqlite3"
+          ],
+          "instead": "PostgreSQL through Drizzle"
+        },
+        {
+          "match": [
+            "vue",
+            "react",
+            "react-dom",
+            "@angular/core",
+            "nuxt",
+            "next"
+          ],
+          "instead": "svelte"
+        },
+        {
+          "match": [
+            "jest",
+            "vitest",
+            "mocha",
+            "@vue/test-utils"
+          ],
+          "instead": "bun test"
+        }
+      ],
+      "lockfiles": [
+        "package-lock.json",
+        "yarn.lock",
+        "pnpm-lock.yaml"
+      ],
+      "nonPackage": [
+        "Node.js as the application runtime (engines.node, a node:* base image, `node dist/...` start)",
+        "npm, yarn or pnpm as the package manager (their lockfiles are listed in `lockfiles`)",
+        "A second library for a job a layer above already covers (extra ORM, HTTP client, state manager, component kit, test runner)"
+      ]
+    },
+    "gapFilling": "Concerns no layer covers (a queue, a cache, search, object storage, logging, a PDF renderer) are filled from tech-radar `adopt` entries only, each with a one-line justification in PROJECT.md. A tech-radar entry never overrides a layer above."
+  },
+  "stackExceptions": {
+    "approver": "Tech architect (Tech Architecture Group). Never the requester, the Project Owner, the Support Contact, a reviewer, or an agent. A requester asking for a different stack does not change it.",
+    "record": "PROJECT.md `## Stack Exceptions` — one row per approval: `| Scope | Deviation | Approved by | Date | Link (ADR/ticket) |`. An exception without an approver and a date is not an exception.",
+    "legacyCutoff": "2026-10-07",
+    "startDateSource": "PROJECT.md `## Vibe Start` (ISO YYYY-MM-DD). If blank, the earliest git commit date — the same fallback /vibe-check uses.",
+    "legacy": {
+      "appliesWhen": "Vibe Start is before legacyCutoff.",
+      "allowance": "The project may keep and maintain the stack it already has — bug fixes, small features inside existing modules, and patch/minor dependency upgrades — without a new approval. Existing deviations are reported as a legacy note, not a finding.",
+      "notCovered": "Major improvements are never covered by the legacy exception."
+    },
+    "majorImprovements": {
+      "rule": "Always need a recorded tech-architect approval, for every project — including a pre-cutoff project, and including when the change uses the allowed stack.",
+      "examples": [
+        "Adding a module, service, workspace or app",
+        "Database migrations or schema changes (new tables, columns, indexes, data migrations)",
+        "Adding a frontend app or replacing the frontend",
+        "Swapping or adding a runtime, framework, ORM or database",
+        "A major-version upgrade of a framework, runtime or ORM"
+      ],
+      "mechanical": false,
+      "note": "Whether a change is a major improvement cannot be judged from the tree alone. The stack-allowed check prints a reminder; the gate and the reviewer confirm the approval row exists."
+    },
+    "postCutoff": "Any deviation from allowedStack needs a recorded tech-architect approval before it is merged."
+  },
+  "requiredScripts": [
+    {
+      "name": "dev",
+      "must": "Run every workspace in watch mode for local development.",
+      "severity": "Medium"
+    },
+    {
+      "name": "build",
+      "must": "Produce the production artifact the backend serves.",
+      "severity": "High"
+    },
+    {
+      "name": "start",
+      "must": "Run that artifact — the same entry point the container runs.",
+      "severity": "High"
+    },
+    {
+      "name": "typecheck",
+      "must": "svelte-check / tsc across every workspace.",
+      "severity": "Medium",
+      "commonAlias": "check",
+      "aliasNote": "`check` is the name three of four delivered apps used. It is not the contract name. A repo may keep it as an extra alias but must expose `typecheck`."
+    },
+    {
+      "name": "test",
+      "must": "The hermetic suite — no network, no external database.",
+      "severity": "High"
+    },
+    {
+      "name": "test:coverage",
+      "must": "The hermetic suite plus coverage/lcov.info at the repo root, written only when the suite passes.",
+      "severity": "High",
+      "failsClosed": true,
+      "failureNote": "The app delivered without this script reported 0.0% coverage on a passing suite, because nothing produced a report for the platform's scanner to read."
+    },
+    {
+      "name": "test:integration",
+      "must": "Playwright — the pointer-and-keyboard journey and the production-artifact journey.",
+      "severity": "High",
+      "commonAlias": "itest",
+      "aliasNote": "`itest` was one delivered app's name for this. Aliases are additive, never substitutes."
+    },
+    {
+      "name": "db:generate",
+      "must": "drizzle-kit generate.",
+      "severity": "Low",
+      "notApplicableWhen": "The app has no Drizzle schema — and then the script is still declared, with a body that says so and exits 0."
+    }
+  ],
+  "scriptRules": [
+    {
+      "id": "no-aliases",
+      "rule": "A contract name may not be replaced by a synonym. A repo that wants a shorter form declares it alongside the contract name.",
+      "check": "Every `requiredScripts[].name` is a key of the root package.json `scripts` object."
+    },
+    {
+      "id": "declared-when-not-applicable",
+      "rule": "A command that does not apply is declared with a one-line body that says so and exits 0.",
+      "rationale": "An absent script and a deliberately empty one are indistinguishable to anything reading the manifest, and only one of them is intended."
+    },
+    {
+      "id": "coverage-fails-closed",
+      "rule": "test:coverage must not write coverage/lcov.info when the suite fails.",
+      "check": "The script body chains the report generation after the suite (`&&`, or a script that exits before writing), or delegates to a runner script that does.",
+      "rationale": "A report written from a red suite is worse than no report: the gate reads a number describing code nobody successfully ran, and it stays green across the change that broke the suite.",
+      "delegation": "A body that delegates to a runner script (`sh scripts/coverage.sh`) is a PASS with a note, not a failure. Reading the delegating line proves nothing either way, and guessing at what counts as gating inside the runner makes two implementations disagree. Verify the property once, by hand, by breaking a test on purpose and confirming the command exits non-zero and leaves no report — together with coverage-report-written-on-green, that covers both directions."
+    },
+    {
+      "id": "coverage-report-written-on-green",
+      "rule": "test:coverage must write coverage/lcov.info when the suite passes, and must fail loudly if it did not.",
+      "check": "The runner asserts, after a zero-exit suite, that the report exists and is non-empty — and exits non-zero when it is absent. A script that only deletes the report on failure satisfies coverage-fails-closed and still ships nothing.",
+      "rationale": "Fail-closed guards a red suite writing a report. Nothing guarded the opposite, and the opposite produces this file's own worst case: a runner that exits non-zero on a GREEN suite makes a correct fail-closed script delete a perfectly good report, and the gate then reads 0.0% coverage on a suite where every test passed. Measured on a delivered app: @electric-sql/pglite 0.5.x makes the host process exit 99 at teardown reporting '70 pass, 0 fail', while 0.3.12 exits 0 on the identical suite. The dependency's teardown, not the tests, decided the coverage number.",
+      "fix": "Generate the report only after the suite passes; then verify it exists and is non-empty before exiting 0. When a suite reports zero failures and the runner still exits non-zero, suspect a dependency's teardown before suspecting the tests — and pin around it."
+    }
+  ],
+  "agentsFile": {
+    "paths": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
+    "requiredSection": "## Build and run",
+    "requiredContent": [
+      {
+        "id": "command-table",
+        "must": "Names every script in requiredScripts, and the `bun install --frozen-lockfile` line.",
+        "severity": "High"
+      },
+      {
+        "id": "image-lines",
+        "must": "The exact `container build` and `container run` commands for this app (Apple Container; see `containerRuntime`). A section written against `docker` is a finding — the runtime is fixed, and a reader who copies the line must get the sanctioned engine.",
+        "severity": "High"
+      },
+      {
+        "id": "port",
+        "must": "The port the app listens on, agreeing with EXPOSE in the Dockerfile and PORT in .env.example.",
+        "severity": "Medium"
+      },
+      {
+        "id": "health-paths",
+        "must": "The unauthenticated health paths (/health and /api/health).",
+        "severity": "Medium"
+      },
+      {
+        "id": "environment",
+        "must": "The environment variables required to start, matching the keys in .env.example.",
+        "severity": "Medium"
+      }
+    ],
+    "rationale": "Every agent that opens the repo after delivery reads this file first — a maintainer's session, a review agent, and the deployment platform's tooling. Without it each one infers the build from the tree, and the inference is what fails. Both names are required so that a tool looking for either one finds it. Of four apps delivered on this pipeline, the one with neither file shipped an image carrying 3 CRITICAL CVEs and reported 0.0% coverage; the two carrying both cleared the image scan and reported 89.6% and 90.4%.",
+    "stalenessRule": "The section must describe the repository at HEAD. A contract that was true four commits ago is a confident wrong answer, and worse than an absent one.",
+    "platformInjectedEnvKeys": {
+      "note": "The platform's onboarding integration commit appends its own keys to .env.example. The `environment` requirement cross-checks the section against that file, so without this list every correctly-built repo fails the check the moment it is onboarded — for variables the application does not read and did not add.",
+      "keys": [
+        "APP_NAME",
+        "DEVOPS_PLATFORM_INTEGRATION",
+        "LLM_ENGINE_URL"
+      ],
+      "rule": "These do not have to appear in the `## Build and run` section. Documenting them is better — one row each, marked as platform-added and unread by the app — and a repo that does is not penalised either way. Never treat their presence in .env.example as a finding: deleting them would only invite the next integration pass to add them back.",
+      "sourceOfTruth": "Observed on the sample-ball-and-bricks onboarding, 2026-08-18, integration commit b2032ce. LLM_ENGINE_URL arrives with the two CommonJS stubs no-platform-stubs requires you to delete, so after that deletion it has no consumer at all."
+    },
+    "requireBoth": true,
+    "canonical": "AGENTS.md",
+    "symlink": {
+      "rule": "`CLAUDE.md` is a symlink to `AGENTS.md`, committed as a symlink — not a copy.",
+      "create": "ln -s AGENTS.md CLAUDE.md && git add AGENTS.md CLAUDE.md",
+      "verify": "git ls-files -s CLAUDE.md   # mode must be 120000, not 100644",
+      "direction": "AGENTS.md is the real file because it is the cross-tool name; CLAUDE.md is the tool-specific alias pointing at it. Both are required — an agent that looks for only one of the two names must find it, and neither name may be the one that is missing.",
+      "rationale": "Two regular files are two copies, and copies drift. All three delivered apps that carried both files carried them as mode 100644 with identical 203-line content — agreeing by coincidence, with nothing preventing the next edit from touching one and not the other. A symlink makes the drift impossible instead of unlikely, which is the same reason the command contract is checked rather than recommended.",
+      "gotcha": "Committed mode is what counts. `git ls-files -s` reporting 100644 for CLAUDE.md means a copy was committed even if the working tree shows a link — typically a checkout with `core.symlinks=false`, or a tool that resolved the link when writing. Fix the index, not just the file: `git rm --cached CLAUDE.md && ln -sf AGENTS.md CLAUDE.md && git add CLAUDE.md`."
+    }
+  },
+  "repoChecks": [
+    {
+      "id": "coverage-report-tracked",
+      "severity": "High",
+      "rule": "sonar-project.properties declares at least one `sonar.javascript.lcov.reportPaths` / `sonar.typescript.lcov.reportPaths` entry, AND every declared path resolves to a file that `git ls-files` lists. Declaring nothing fails this check exactly as hard as declaring an untracked path — both make the platform's scanner read 0%.",
+      "failureMode": "Two of four delivered apps failed this in two different ways — one declared no path at all, the other declared two per-workspace paths and kept `coverage/` in .gitignore. Both read 0.0% at the gate, and both configurations look correct in review.",
+      "fix": "Carve the exception explicitly — `coverage/*` then `!coverage/lcov.info` — and for a workspace repo merge to one root report rather than declaring several.",
+      "check": "Two conditions, both required. Zero declared paths is a failure, not a vacuous pass: the set being empty is precisely how one of the two delivered apps reached the gate at 0.0%."
+    },
+    {
+      "id": "dockerfile-patches-base",
+      "severity": "High",
+      "rule": "The final Dockerfile stage runs `apk upgrade --no-cache` (or the base image's equivalent) before dropping to the non-root user.",
+      "failureMode": "The one delivered app whose Dockerfile omitted this shipped an image scanning CRITICAL=3, HIGH=35 — every finding an OS package in the base. A CRITICAL blocks production promotion.",
+      "fix": "See references/field-notes.md, 'Containers and deployment'."
+    },
+    {
+      "id": "dockerfile-production-deps",
+      "severity": "High",
+      "rule": "The runtime stage takes node_modules from a `--production` install, not from the build stage — and the install actually excludes the build toolchain (see frontend-deps-are-build-time).",
+      "failureMode": "Copying the build stage's tree carries the bundler, type checker and test database into the scanned image. Doing the --production install correctly and still shipping them is a separate defect with the same symptom; check the built image, not the Dockerfile text.",
+      "verify": "Read the Dockerfile for the flag, then confirm against the image: the bundler, test runner and type checker must not resolve inside the running container while the runtime dependencies still do."
+    },
+    {
+      "id": "frontend-deps-are-build-time",
+      "severity": "High",
+      "rule": "In a workspace whose frontend ships as a bundle, every frontend package is declared under `devDependencies` — including the component library and the design tokens.",
+      "failureMode": "`--production` drops devDependencies and nothing else, so a frontend workspace that declares its UI library under `dependencies` ships the whole library into the runtime image even when the Dockerfile follows dockerfile-production-deps exactly. On a delivered app this was the entire `@acme/rnd-svelte.*` set plus the design tokens: present in the scanned image, imported by nothing at runtime, because the bundle had already inlined them. The Dockerfile was correct and the image was still wrong.",
+      "fix": "Move every frontend dependency to devDependencies. The app ships as `dist/`; nothing under node_modules is loaded at runtime, so nothing there is a runtime dependency. Verified on the delivered app: 37 runtime packages afterwards, with vite, svelte, drizzle-kit, @playwright/test, svelte-check, rolldown, esbuild and the component library all absent from the image.",
+      "check": "For each frontend workspace that produces a bundle, its package.json `dependencies` is empty or contains only packages the server actually imports at runtime. A UI component library, a bundler plugin or a design-token package under `dependencies` fails this.",
+      "scope": "Applies to workspaces that build to a static bundle. A frontend that is itself a published library, or one rendered on the server at runtime, legitimately has runtime dependencies — judge by whether node_modules is read after `bun run build`."
+    },
+    {
+      "id": "dockerfile-pinned-base",
+      "severity": "Medium",
+      "rule": "The base image tag names an exact patch version, never a floating minor and never `latest`."
+    },
+    {
+      "id": "dockerfile-high-uid",
+      "severity": "Medium",
+      "rule": "The runtime user is created in the image with UID and GID >= 10000, not inherited from the base.",
+      "rationale": "The cluster-side check rejects low UIDs as well as root. Three delivered apps created a 10001 user; the fourth inherited the base's UID 1000. The requirement appeared only in those repos' own Dockerfile comments and in no skill."
+    },
+    {
+      "id": "build-config-has-guard",
+      "severity": "Medium",
+      "rule": "A test imports the bundler config (vite.config.ts and equivalents) and asserts something real about its resolved values.",
+      "failureMode": "Vite loads a TypeScript config by parsing it with the bundler at build time, so the config is neither type-checked with the app nor imported by any suite — it is the one file with no coverage by construction. It is also the file the platform's onboarding integration commit rewrites. Three deliveries have now had `build-and-push` fail on `PARSE_ERROR: Logical expressions and coalesce expressions cannot be mixed` after the commit rewrote a target to `a ?? b || \"*\"` — valid-looking, a syntax error, and invisible in every local checkout until a five-minute pipeline run says so.",
+      "fix": "Import the config in a unit test and assert its dev-proxy targets parse as http(s) URLs and its build output directory is the one the backend serves. On the most recent delivery this failed in 21 ms against the integration commit's edit, before the platform's own failure card arrived.",
+      "check": "At least one test file under the repo's test globs imports the bundler config module. Absence is Medium, not High: a repo with no bundler config has nothing to guard."
+    },
+    {
+      "id": "no-platform-stubs",
+      "severity": "High",
+      "rule": "Neither `src/routes/health.js` nor `src/services/llm-integration-service.js` is tracked; no file under `sonar.sources` uses CommonJS `require(`; and no root `tsconfig.json` introduced by the integration commit survives.",
+      "failureMode": "The platform's onboarding commit injects those two files into every repo. They require `express` and `axios`, neither present in any dependency tree and both forbidden by the fixed stack. Two of four apps deleted them; two still carry them, and in one `sonar.sources=.` means they are analysed as product code. The same commit also writes a root tsconfig.json (`\"module\": \"commonjs\"`, `\"strict\": false`, `include: [\"**/*.ts\", \"**/*.tsx\"]`). On a workspace repo that builds from per-workspace configs this one contradicts all of them, and it is picked up by whatever resolves the nearest tsconfig — a silent change to how the project compiles, in a file nobody wrote.",
+      "scope": "Scoped deliberately. CommonJS outside the product tree is legitimate and common — a Playwright harness, a `.cjs` config, an integration spec. One delivered app's `integrations/support/gateway.js` requires `@acme/integration-test-tools`; a blanket ban would fail a repo that had correctly deleted both stubs. Check the two stub paths by name, and `require(` only where product code lives. The tsconfig clause is deliberately narrow: a root tsconfig.json is legitimate in most repos, so test provenance rather than presence — `git log --diff-filter=A` naming the integration commit — exactly as platform-yaml-not-hand-authored does."
+    },
+    {
+      "id": "platform-yaml-not-hand-authored",
+      "severity": "Medium",
+      "rule": "No .platform/*.yaml file predates the platform's own integration commit.",
+      "failureMode": "The onboarding commit writes only the .platform files that are absent. Two delivered apps hand-authored resources.yaml and observability.yaml in their first commit; the bot then skipped exactly those two, leaving config in a schema the platform never validated — `resources:` nested instead of flat with `version: 1`, and Kubernetes probe blocks instead of the platform's probe_path/metrics_* fields. Nothing errors; it is simply not what the other repos have.",
+      "check": "For each .platform/*.yaml, the commit that added it is the integration commit or later."
+    },
+    {
+      "id": "gate-record-names-head",
+      "severity": "Medium",
+      "rule": "vibe-release.json `target-commit-hash` is HEAD, or every commit between it and HEAD touches only the release-handoff files (`freshnessAllowedPaths`). The file may also not exist yet.",
+      "failureMode": "All four delivered apps left a stale record — 2, 4, 7 and 8 commits behind. The skill already says to re-run the gate against the commit being shipped; four runs out of four did not. A gate record naming a commit you have moved past describes a different artifact.",
+      "note": "Absent file → not applicable, the repo has not reached phase 7. Present, and product code changed since → report it and re-run the gate.",
+      "severityNote": "Medium, and deliberately not High, because only phase 7 writes this file: a High verdict would block entry to the one phase that can clear the finding. It is a CONDITIONAL that phase 7 resolves by running — report it, then let `/vibe-check` re-stamp the record against the commit being shipped.",
+      "freshnessAllowedPaths": [
+        "vibe-release.json",
+        "PROJECT.md",
+        "docs/REVIEW-PROOF.md"
+      ],
+      "check": "`git diff --name-only <target-commit-hash>..HEAD` lists nothing outside `freshnessAllowedPaths`. Same freshness idea as `review-proof-sealed`, and for the same reason: the record is committed *after* the gate writes it, so it necessarily sits at least one commit below HEAD.",
+      "whyNotEqualsHead": "An earlier revision required equality with HEAD, which no repo could satisfy: release-doc.json commitPolicy says the file 'sits one commit above target-commit-hash', so committing the record as instructed guaranteed the finding, and re-running the gate rewrote the file and produced a new commit above it again. A check that fires on every correct repo teaches the caller to ignore it — the failure this file exists to prevent. Measured after the change: it fires on three of the four delivered apps, for real drift, and not on the one that gated correctly."
+    },
+    {
+      "id": "reviewer-named",
+      "severity": "Medium",
+      "rule": "At Medium risk or above, PROJECT.md `## Review Evidence` carries a line `Reviewer: <github-login|email>` naming a specific person, and that identity is neither the `## Project Owner` nor the `## Support Contact`.",
+      "failureMode": "Phase 2 instructs this explicitly and all four delivered apps reached the gate without it, describing the reviewer only as 'neither the Project Owner nor the Support Contact'. That is the exact failure the instruction exists to prevent. An instruction ignored four times out of four is a design problem, not user error.",
+      "fieldFormat": "Reviewer: <github-login>   — or an email address; one identity, no leading @, no URL.",
+      "check": "Match `^\\s*(?:[-*]\\s*)?\\*{0,2}Reviewer\\*{0,2}\\s*:\\s*(\\S+)` inside the `## Review Evidence` section, then compare the captured identity against Project Owner and Support Contact using review-proof.json `identityMatching`. Prose around it is fine; the line is what the check reads.",
+      "whyStructured": "The rule used to say only 'names a specific independent reviewer — a person, not a role description', which nothing can evaluate. An implementation that scanned the section for a login-shaped token passed a repo with no reviewer at all, because the gate record in that same section quotes the Project Owner's login as evidence for ownership-support-contacts. A false PASS on the exact defect the rule targets is worse than no rule."
+    },
+    {
+      "id": "stack-allowed",
+      "severity": "High",
+      "rule": "No dependency in the root or any workspace package.json matches allowedStack.notAllowedWithoutApproval.packages, and no lockfile in allowedStack.notAllowedWithoutApproval.lockfiles is tracked — unless PROJECT.md `## Stack Exceptions` records a tech-architect approval naming it, or the project is legacy (Vibe Start before stackExceptions.legacyCutoff).",
+      "check": "Collect dependency names (dependencies, devDependencies, optionalDependencies, peerDependencies) from the root and workspace package.json files, excluding node_modules. A match is PASS when (a) a `## Stack Exceptions` table row names the package and carries an approver and an ISO date, or (b) the project is legacy — PASS with a legacy note. Otherwise FAIL. Always print a reminder that major improvements need an approval row, whatever the verdict.",
+      "failureMode": "The stack used to be stated in four places with four different answers, so an agent following tech-radar built Node/Express/Vue while the pipeline expected Bun/Svelte/Elysia. The deviation stayed invisible until the build contract, the field notes and the deployment assets no longer fit.",
+      "fix": "Replace the package with the allowedStack layer that covers it, or obtain a tech-architect approval and record it in PROJECT.md `## Stack Exceptions`. Never add an exception row without the approver and the date."
+    }
+  ],
+  "verdicts": {
+    "PASS": "No check failed.",
+    "CONDITIONAL": "Only Low- and Medium-severity checks failed. Report them by name. They do not block entry to phase 7 — and `gate-record-names-head` is expected to appear here on any repo that has gated once and committed since, because running phase 7 is what clears it.",
+    "FAIL": "At least one High-severity check failed. Phase 7 is not entered until it is fixed — not excluded, not lowered, and never by renaming the contract to match the repo. Every High check is one the caller can fix without running phase 7."
+  },
+  "nonNegotiable": "Never satisfy a check by weakening it. Widening a Sonar exclusion, renaming a script to match what the repo happens to have, or deleting a failing assertion converts a signal into silence, and a control that is trusted and wrong costs more than one that is red.",
+  "stages": {
+    "note": "The contract is checked automatically at the exit of every phase that produces something it covers, not only at the gate. A Dockerfile finding surfaced at phase 5 costs one edit; the same finding surfaced at phase 7 costs a walk back through three phases and a re-stamped dossier. Callers select the stage; nothing here is ever typed by a user.",
+    "phase-2": {
+      "runAfter": "project-scaffold:new-repo-init and the first commit that adds the root package.json",
+      "scriptChecks": true,
+      "agentsFile": true,
+      "repoChecks": [
+        "stack-allowed"
+      ],
+      "skipReason": "No Dockerfile, coverage report or gate record exists yet — checking for them here would report absence as failure and teach the caller to ignore the output. stack-allowed does run here: the first package.json is where a deviation starts."
+    },
+    "phase-5": {
+      "runAfter": "the deployment assets are written",
+      "scriptChecks": true,
+      "agentsFile": true,
+      "repoChecks": [
+        "coverage-report-tracked",
+        "dockerfile-patches-base",
+        "dockerfile-production-deps",
+        "frontend-deps-are-build-time",
+        "dockerfile-pinned-base",
+        "dockerfile-high-uid",
+        "no-platform-stubs",
+        "platform-yaml-not-hand-authored",
+        "build-config-has-guard",
+        "stack-allowed"
+      ],
+      "skipReason": "gate-record-names-head and reviewer-named belong to phase 7; vibe-release.json does not exist yet."
+    },
+    "phase-7": {
+      "runAfter": "entry to the governance gate — check-golive-readiness prerequisite 0",
+      "scriptChecks": true,
+      "agentsFile": true,
+      "repoChecks": [
+        "coverage-report-tracked",
+        "dockerfile-patches-base",
+        "dockerfile-production-deps",
+        "frontend-deps-are-build-time",
+        "dockerfile-pinned-base",
+        "dockerfile-high-uid",
+        "no-platform-stubs",
+        "platform-yaml-not-hand-authored",
+        "gate-record-names-head",
+        "reviewer-named",
+        "build-config-has-guard",
+        "stack-allowed"
+      ],
+      "skipReason": null
+    },
+    "post-onboarding": {
+      "runAfter": "any push that follows the platform's integration commit — that commit edits application source and injects CommonJS stubs, so a repo that passed before onboarding can fail after it",
+      "scriptChecks": false,
+      "agentsFile": true,
+      "repoChecks": [
+        "build-config-has-guard",
+        "no-platform-stubs",
+        "platform-yaml-not-hand-authored",
+        "gate-record-names-head"
+      ],
+      "skipReason": null
+    }
+  },
+  "invocation": "Chained, not typed. `vibe-code-and-deploy` runs it at the exit of phases 2 and 5, `check-golive-readiness` runs it as prerequisite 0, and the `golive-gatekeeper` agent runs it before any release-like action. `/vibe-conform` exists for an ad-hoc check of a repo nobody is currently shipping — it is the escape hatch, not the path. A caller that waits for a user to ask for it has misread this file.",
+  "containerRuntime": {
+    "runtime": "Apple Container (`container`) only",
+    "rationale": "The Dockerfile is mandatory — the platform builds it. Building it *locally* is a verification step, and it is worth doing only with the sanctioned runtime. `docker` on a company Mac is frequently a shim: on the machine this rule was written from, `docker` resolved to `~/.rd/bin/docker`, Rancher Desktop's wrapper, while Apple Container was installed and running alongside it. A pipeline that shells out to `docker` therefore cannot say which engine produced the image it just declared good.",
+    "detect": [
+      "command -v container",
+      "container system status   # the daemon is separate from the CLI; `container system start` if it is not running"
+    ],
+    "commands": {
+      "build": "container build -t <repo> .",
+      "run": "container run --rm -p <port>:<port> -e DATABASE_URL=... <repo>",
+      "runAtPlatformMemoryLimit": "container run --rm -m 1024M <repo>   # reproduces the boot-time OOM",
+      "buildFromCustomDockerfile": "container build -f <path> -t <repo> ."
+    },
+    "forbidden": [
+      "Docker Desktop",
+      "Rancher Desktop",
+      "any `docker` shim on PATH"
+    ],
+    "forbiddenNote": "Do not fall back to `docker` when `container` is absent, and do not install a runtime to satisfy this step. Licensing and machine setup are not this pipeline's call.",
+    "whenAbsent": "**Skip the local image build entirely and say so.** If `container` is not installed, the local build is not required — it was only ever a way to fail faster than the platform would. The Dockerfile is still written, still reviewed against the static checks below (`dockerfile-patches-base`, `dockerfile-production-deps`, `dockerfile-pinned-base`, `dockerfile-high-uid`), and still built by the platform at onboarding. Record the skip in the phase 5 summary; never report an image as verified when nothing built it.",
+    "whenRequiredAnyway": "One case does need a runtime rather than static checks: a symptom that only the running image shows — a container killed at boot with no output (the OOM signature), a path that exists only in the build stage, a missing runtime dependency. If `container` is unavailable then, say plainly that the diagnosis needs a local runtime and hand it over. Guessing at a Dockerfile you cannot run is how three attempts get spent on one cause.",
+    "staticChecksAreUnconditional": "The four Dockerfile checks in `repoChecks` read the file, not the daemon. They run whether or not any runtime is installed, and they are what caught the unpatched base image that shipped 3 CRITICAL CVEs."
+  }
+}

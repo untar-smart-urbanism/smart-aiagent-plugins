@@ -1,0 +1,322 @@
+{
+  "$schema": "../../schemas/tech-radar-entry.schema.json",
+  "stack": "frontend",
+  "runtime": "svelte",
+  "stackSource": "plugins/golive-gate/data/build-contract.json#allowedStack",
+  "exceptionPolicy": "plugins/golive-gate/data/build-contract.json#stackExceptions",
+  "versionPolicy": "Use versions listed in recommendedVersion when present; otherwise use latest stable release.",
+  "source": "The core layers (framework, bundler, UI components, tests) are defined by allowedStack in plugins/golive-gate/data/build-contract.json and are only pointed to here. Design tokens and design language stay BLUE DLS for every stack. This radar fills remaining concerns and carries the legacy `hold` ring for Vue 3 projects. Adapted from https://github.com/acme-org/tech-radar/blob/main/frontend.json.",
+  "entries": [
+    {
+      "name": "Svelte",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Frontend framework, with TypeScript (allowedStack)."
+    },
+    {
+      "name": "svelte-check",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "description": "Type and diagnostics checker for Svelte (allowedStack)."
+    },
+    {
+      "name": "@acme/rnd-svelte.*",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "UI component set (allowedStack), via ui-dev:rnd-svelte-implementor. Themed by BLUE tokens."
+    },
+    {
+      "name": "Bun (package manager)",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "description": "Package manager (allowedStack). `bun install --frozen-lockfile`; bun.lock is the lockfile."
+    },
+    {
+      "name": "@acme/blue-design-tokens",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Design foundation for every stack (allowedStack designSystem): BLUE DLS colour, typography and spacing tokens are the visual source of truth; never hand-roll values BLUE already defines."
+    },
+    {
+      "name": "Vue 3",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Svelte is the framework"
+    },
+    {
+      "name": "TypeScript",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "recommendedVersion": "5.x",
+      "description": "Language for Svelte applications (allowedStack)."
+    },
+    {
+      "name": "JavaScript / ES6+",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Modern JavaScript baseline when TypeScript is not yet adopted in a module."
+    },
+    {
+      "name": "HTML 5",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Standard markup for web applications."
+    },
+    {
+      "name": "CSS 3",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Default styling approach."
+    },
+    {
+      "name": "SCSS",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "CSS preprocessor for component and layout styles."
+    },
+    {
+      "name": "BLUE DLS Vue 3 (component package)",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Only the Vue 3 component package is legacy; use @acme/rnd-svelte.*. BLUE tokens, icons and patterns stay mandatory"
+    },
+    {
+      "name": "BLUE Pattern Library - Collaborative Components",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Design foundation for every stack: use published BLUE collaborative components/patterns when the required pattern is available."
+    },
+    {
+      "name": "BLUE Icon",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Design foundation for every stack: use the standard BLUE icon library instead of custom or third-party icon sets."
+    },
+    {
+      "name": "Vue 2",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "End-of-life and not allowed for new frontend work. Use Svelte with @acme/rnd-svelte.*."
+    },
+    {
+      "name": "BLUE DLS Vue 2",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy Vue 2 design system. Use BLUE tokens with @acme/rnd-svelte.*."
+    },
+    {
+      "name": "React",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Not allowed for new frontend work. Use Svelte with @acme/rnd-svelte.*."
+    },
+    {
+      "name": "Angular",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Not allowed for new frontend work. Use Svelte with @acme/rnd-svelte.*."
+    },
+    {
+      "name": "Nuxt.js",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Not allowed for new frontend work. Use Svelte with Vite; request a tech-architect approval if SSR is required."
+    },
+    {
+      "name": "Vue Router",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use the Svelte routing provided by the rnd-svelte implementor"
+    },
+    {
+      "name": "@tanstack/vue-query",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use Svelte-native data loading with window.fetch / Eden treaty"
+    },
+    {
+      "name": "Pinia",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use Svelte stores/runes"
+    },
+    {
+      "name": "Vuex",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Legacy Vue state management. Use Svelte stores/runes."
+    },
+    {
+      "name": "Vite",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "recommendedVersion": "6.x",
+      "description": "Build tool and dev server for Svelte projects (allowedStack)."
+    },
+    {
+      "name": "Webpack",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Do not use for new projects. Use Vite."
+    },
+    {
+      "name": "Vitest",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use bun test for units and Playwright for browser journeys"
+    },
+    {
+      "name": "@vue/test-utils",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use bun test / Playwright"
+    },
+    {
+      "name": "Jest 28+",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use bun test"
+    },
+    {
+      "name": "Jest 23",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Legacy Jest - use bun test."
+    },
+    {
+      "name": "ESLint",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "recommendedVersion": "9.x",
+      "description": "Linting and code quality enforcement."
+    },
+    {
+      "name": "Playwright",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "recommendedVersion": "1.x",
+      "description": "Browser automation for integration and E2E tests (allowedStack; the only sanctioned second runner)."
+    },
+    {
+      "name": "window.fetch",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Use native fetch for HTTP calls. Do not add axios."
+    },
+    {
+      "name": "axios",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Do not use — replace with window.fetch."
+    },
+    {
+      "name": "dayjs",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "recommendedVersion": "1.x",
+      "description": "Date parsing and formatting."
+    },
+    {
+      "name": "moment.js",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Too heavy — use dayjs."
+    },
+    {
+      "name": "jQuery",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Do not use - use Svelte and modern DOM APIs."
+    },
+    {
+      "name": "GraphQL (client)",
+      "ring": "hold",
+      "quadrant": "Languages and Frameworks",
+      "description": "Prefer REST + OpenAPI for new integrations unless explicitly approved."
+    },
+    {
+      "name": "OpenAPI Spec (OAS)",
+      "ring": "adopt",
+      "quadrant": "Languages and Frameworks",
+      "description": "Contract for API clients and code generation."
+    },
+    {
+      "name": "NPM",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use Bun as package manager"
+    },
+    {
+      "name": "PNPM",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Use Bun as package manager"
+    },
+    {
+      "name": "Yarn",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Do not use for new projects."
+    },
+    {
+      "name": "Sass (dart-sass)",
+      "ring": "adopt",
+      "quadrant": "Tools",
+      "description": "SCSS compilation — use dart-sass, not node-sass."
+    },
+    {
+      "name": "node-sass",
+      "ring": "hold",
+      "quadrant": "Tools",
+      "description": "Deprecated — use dart-sass."
+    },
+    {
+      "name": "Docker",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Containerize the application (the frontend build is served by the backend)."
+    },
+    {
+      "name": "NGINX",
+      "ring": "hold",
+      "quadrant": "Platforms",
+      "description": "Legacy only (project Vibe Start before 2026-10-07) or tech-architect approval. Static serving of the build output is done by the backend (dist/)"
+    },
+    {
+      "name": "GCS",
+      "ring": "adopt",
+      "quadrant": "Platforms",
+      "description": "Static asset hosting when deploying to GCP."
+    },
+    {
+      "name": "Lazy-load / Lazy-rendering",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Code-split routes and defer off-screen rendering."
+    },
+    {
+      "name": "Web Core Vitals",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Measure LCP, INP, and CLS for production pages."
+    },
+    {
+      "name": "FE Integration test",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Prefer Playwright integration tests over shallow unit snapshots."
+    },
+    {
+      "name": "PWA",
+      "ring": "adopt",
+      "quadrant": "Techniques",
+      "description": "Service worker and offline-capable patterns when product requires it."
+    },
+    {
+      "name": "Micro Frontend (iframe)",
+      "ring": "hold",
+      "quadrant": "Techniques",
+      "description": "Avoid iframe-based composition for new work — prefer module federation or npm packages."
+    }
+  ]
+}

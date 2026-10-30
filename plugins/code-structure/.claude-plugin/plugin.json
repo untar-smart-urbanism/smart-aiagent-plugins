@@ -1,0 +1,10 @@
+{
+  "name": "code-structure",
+  "description": "Auto-resolves file placement in Bun workspace monorepos (Svelte + Vite frontend, Elysia + Drizzle backend). Agents consult on every prompt; /check-structure and /fix-structure audit existing repos (legacy stacks advisory).",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.3.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "create-plugin",
+  "description": "Scaffold and validate new plugins in the smart-aiagent-plugins marketplace repository.",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.0.0"
+}

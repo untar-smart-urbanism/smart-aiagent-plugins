@@ -1,0 +1,52 @@
+{
+  "title": "Test Generation, Severity & Fix-Loop Policy",
+  "source": "Non-Tech Change Management with AI Assistance Playbook — testing before go-live (extends generate-test-scenarios)",
+  "version": "1.0.0",
+  "severityByCategory": {
+    "sensitive": "High",
+    "important": "Medium",
+    "core": "Low"
+  },
+  "severityNote": "Severity derives deterministically from the scenario Category and is recorded per scenario for auditability. Changes to the mapping are made by editing this policy file, never ad hoc in a dossier.",
+  "testTypeExpectations": [
+    { "category": "core", "require": ["unit"], "note": "Happy-path behavior asserted at the unit level; add integration when the flow crosses a module or process boundary." },
+    { "category": "important", "require": ["unit", "integration"] },
+    { "category": "sensitive", "require": ["unit", "integration", "security"], "conditional": [ { "if": "the covered flow is latency/throughput-sensitive or DESIGN.md flags a hot path", "add": "performance" } ] }
+  ],
+  "testTypes": {
+    "unit": "Asserts one function/module in isolation with local fixtures/mocks.",
+    "integration": "Asserts a flow across modules/routes using the project's own runner; external systems mocked or containerized locally.",
+    "security": "Asserts auth/access boundaries, input validation, and never-log.json data handling for the covered code.",
+    "performance": "Asserts a stated latency/throughput budget locally; never a load test against a live system.",
+    "manual": "Human-judgment check; no generated code."
+  },
+  "runPolicy": {
+    "auto": "Generated test-code suites that are hermetic — run by the project's own test runner, against local fixtures/mocks/containers, touching no live or external system and mutating no shared state — run automatically, without asking.",
+    "ask": "Any check that touches a live or external system, mutates shared state, or requires manual steps runs only after the user's explicit go-ahead (the pre-v2 behavior, preserved for exactly this class).",
+    "hermeticTest": [
+      "invoked via the project's own runner (package.json test script or the runner it declares)",
+      "no network calls to live/external endpoints (mocks, fakes, or local containers only)",
+      "no writes outside the repo/test sandbox",
+      "deterministic: repeatable without manual setup"
+    ]
+  },
+  "fixLoop": {
+    "appliesTo": "High",
+    "maxAttempts": 3,
+    "perFinding": true,
+    "procedure": [
+      "diagnose root cause (reproduce, isolate — no fix before the cause is understood)",
+      "classify: product-bug vs test-bug",
+      "apply the minimal fix to the correct side",
+      "re-run the finding's tests plus any suite whose freshness set intersects the changed files"
+    ],
+    "onExhausted": "Record FAILED (<date>, <root-cause note>, NEEDS-HUMAN) and stop looping. The finding still blocks the gate per golive-gate.json test-scenario-complete — NEEDS-HUMAN routes it to a person, it never waives it.",
+    "mediumLowPolicy": "Medium/Low failures are never auto-looped: present one compact batch ask (TS-ID, title, severity, one-line failure) and run the same bounded loop only for the findings the user selects; unselected findings stay FAILED, recorded honestly."
+  },
+  "qualityRules": [
+    "Never add assertion-free tests to lift counts or coverage — every generated test asserts observable behavior.",
+    "Never weaken, delete, or skip a failing assertion to make a run pass — a product bug is fixed in product code, a test bug in test code.",
+    "Never fabricate a PASSED result — a test that cannot run is PENDING or FAILED, never PASSED.",
+    "Use only the approved test tooling from allowedStack in build-contract.json (bun test for unit/integration, Playwright for browser journeys); tech-radar only for gaps it does not cover; place test files per code-structure conventions; never introduce a new framework when the project already has one."
+  ]
+}

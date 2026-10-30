@@ -1,0 +1,113 @@
+{
+  "$schema": "../../schemas/license-policy.schema.json",
+  "version": "1.1.0",
+  "description": "Open Source licenses accepted for new dependencies without additional legal review",
+  "policy": "Compound SPDX expressions are allowed only if every option is Accepted or Accepted-with-Requirement. Reject if any token is Forbidden or unknown.",
+  "source": "Company Open Source License Policy",
+  "allowed": [
+    {
+      "id": "0BSD",
+      "spdxIds": ["0BSD"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "Apache-1.0",
+      "spdxIds": ["Apache-1.0"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "Apache-1.1",
+      "spdxIds": ["Apache-1.1"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "Apache-2.0",
+      "spdxIds": ["Apache-2.0", "Apache 2.0"],
+      "notes": "Accepted; include license notice and attribution when distributing"
+    },
+    {
+      "id": "BSD-2-Clause",
+      "spdxIds": ["BSD-2-Clause", "BSD 2-Clause"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "BSD-3-Clause",
+      "spdxIds": ["BSD-3-Clause", "BSD 3-Clause", "BSD-3-Clause-Clear"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "BSD-4-Clause",
+      "spdxIds": ["BSD-4-Clause", "BSD 4-Clause"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "BSL-1.0",
+      "spdxIds": ["BSL-1.0", "Boost"],
+      "notes": "Accepted — Boost Software License 1.0"
+    },
+    {
+      "id": "CC0-1.0",
+      "spdxIds": ["CC0-1.0", "CC0"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "ICU",
+      "spdxIds": ["ICU"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "ISC",
+      "spdxIds": ["ISC"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "JSON",
+      "spdxIds": ["JSON"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "MIT",
+      "spdxIds": ["MIT"],
+      "notes": "Accepted — preferred default"
+    },
+    {
+      "id": "MIT-0",
+      "spdxIds": ["MIT-0"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "PostgreSQL",
+      "spdxIds": ["PostgreSQL"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "Python-2.0",
+      "spdxIds": ["Python-2.0", "PSF-2.0"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "Unlicense",
+      "spdxIds": ["Unlicense"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "W3C-20150513",
+      "spdxIds": ["W3C-20150513", "W3C"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "WTFPL",
+      "spdxIds": ["WTFPL"],
+      "notes": "Accepted"
+    },
+    {
+      "id": "Zlib",
+      "spdxIds": ["Zlib"],
+      "notes": "Accepted"
+    }
+  ],
+  "compoundRules": {
+    "operators": ["OR", "AND"],
+    "rule": "Every license token must resolve to Accepted or Accepted-with-Requirement. Reject if any token is Forbidden or unknown."
+  }
+}

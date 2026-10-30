@@ -1,0 +1,38 @@
+{
+  "name": "gcp-cost-estimator",
+  "version": "1.1.0",
+  "description": "Estimates GCP cost-component usage quantities (never prices) against the company billing SKU catalog — GKE, Cloud SQL PostgreSQL, Load Balancing, KMS, Artifact Registry, GCS. Reverse-engineers the repo, interviews the owner, verifies answers against code, and emits docs/COST-ESTIMATE.md + CSV with Staging and Production columns for finance.",
+  "author": {
+    "name": "Acme Corp"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "gcp",
+    "cost",
+    "estimation",
+    "finops",
+    "capacity",
+    "gke",
+    "cloud-sql",
+    "kms",
+    "artifact-registry",
+    "gcs",
+    "quantities"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "GCP Cost Estimator",
+    "shortDescription": "Estimates GCP cost-component usage quantities (never prices) against the company billing SKU catalog — GKE, Cloud SQL Po",
+    "longDescription": "Estimates GCP cost-component usage quantities (never prices) against the company billing SKU catalog — GKE, Cloud SQL PostgreSQL, Load Balancing, KMS, Artifact Registry, GCS. Reverse-engineers the repo, interviews the owner, verifies answers against code, and emits docs/COST-ESTIMATE.md + CSV with Staging and Production columns for finance.",
+    "developerName": "Acme Corp",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Help me use GCP Cost Estimator in this repository."
+    ]
+  }
+}

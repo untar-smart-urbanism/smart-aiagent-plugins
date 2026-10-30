@@ -1,0 +1,52 @@
+{
+  "standard": "Semantic Versioning 2.0.0",
+  "commitConvention": "Conventional Commits",
+  "format": "MAJOR.MINOR.PATCH",
+  "versionFiles": [
+    { "pattern": "package.json", "field": "version", "skipPrivateRoot": true },
+    { "pattern": "apps/*/package.json", "field": "version" },
+    { "pattern": "packages/*/package.json", "field": "version" },
+    { "pattern": "plugins/*/plugin.manifest.json", "field": "version" }
+  ],
+  "bumpRules": [
+    {
+      "level": "major",
+      "triggers": [
+        "BREAKING CHANGE in commit body",
+        "commit type with ! suffix (e.g. feat!, fix!)",
+        "breaking change to public API or shared-types used by multiple apps"
+      ]
+    },
+    {
+      "level": "minor",
+      "triggers": [
+        "feat: new feature, backward compatible",
+        "new module or feature folder under apps/"
+      ]
+    },
+    {
+      "level": "patch",
+      "triggers": [
+        "fix: bug fix",
+        "perf: performance improvement",
+        "refactor: internal change without API change",
+        "security fix"
+      ]
+    },
+    {
+      "level": "none",
+      "triggers": [
+        "docs:, chore:, test:, ci:, style: with no production code impact",
+        "marketplace-only metadata with no functional change"
+      ]
+    }
+  ],
+  "scopeMapping": {
+    "apps/frontend": "apps/frontend/package.json",
+    "apps/backend": "apps/backend/package.json",
+    "packages": "packages/*/package.json",
+    "plugins": "plugins/*/plugin.manifest.json"
+  },
+  "sharedPackagePolicy": "When packages/shared-types or packages/shared-utils changes with API impact, bump the package version and consider minor bump for dependent apps",
+  "prePushPolicy": "Run bump-versions before push; commit version updates with message chore(release): bump <name> to <version>"
+}

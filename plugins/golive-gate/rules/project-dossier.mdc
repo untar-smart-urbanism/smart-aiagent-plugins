@@ -1,0 +1,15 @@
+---
+description: When editing a PROJECT.md go-live dossier, use golive-gate plugin data as the source of truth and keep evidence append-only.
+globs: ["**/PROJECT.md"]
+alwaysApply: false
+---
+
+# PROJECT.md dossier rules
+
+When reading or editing a `PROJECT.md` go-live dossier:
+
+1. Take risk tier definitions, checklist wording, and approver roles from `plugins/golive-gate/data/*.json` — never invent risk levels or approver roles.
+2. `## Review Evidence` is **append-only**: add dated records; never delete or rewrite earlier entries.
+3. Fields marked `(owner input)` come from the project owner only — confirm, never fabricate.
+4. Login Method may only be Apps Gateway SSO or Company Google OAuth.
+5. If a section from the template is missing, append the heading with its template comment — never restructure the file or create a parallel governance file.

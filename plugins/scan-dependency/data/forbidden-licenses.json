@@ -1,0 +1,84 @@
+{
+  "$schema": "../../schemas/license-policy.schema.json",
+  "version": "1.1.0",
+  "description": "Open Source licenses that must be rejected (P0) for new dependencies",
+  "severity": "P0",
+  "source": "Company Open Source License Policy",
+  "forbidden": [
+    {
+      "id": "AGPL-1.0",
+      "spdxIds": ["AGPL-1.0", "AGPL-1.0-only", "AGPL-1.0-or-later"],
+      "finding": "AGPL — forbidden"
+    },
+    {
+      "id": "AGPL-3.0",
+      "spdxIds": ["AGPL-3.0", "AGPL-3.0-only", "AGPL-3.0-or-later"],
+      "finding": "AGPL — forbidden"
+    },
+    {
+      "id": "CC-BY-SA-3.0",
+      "spdxIds": ["CC-BY-SA-3.0"],
+      "finding": "Share-alike Creative Commons — forbidden"
+    },
+    {
+      "id": "CC-BY-SA-4.0",
+      "spdxIds": ["CC-BY-SA-4.0"],
+      "finding": "Share-alike Creative Commons — forbidden"
+    },
+    {
+      "id": "UNLICENSED",
+      "spdxIds": ["UNLICENSED"],
+      "finding": "Empty / no license declared — forbidden"
+    }
+  ],
+  "patterns": [
+    {
+      "match": "non-commercial",
+      "caseInsensitive": true,
+      "finding": "Non-commercial license — forbidden"
+    },
+    {
+      "match": "CC-BY-NC",
+      "caseInsensitive": true,
+      "finding": "Non-commercial Creative Commons — forbidden"
+    },
+    {
+      "match": "proprietary",
+      "caseInsensitive": true,
+      "finding": "Proprietary license — forbidden"
+    },
+    {
+      "match": "potentially commercial",
+      "caseInsensitive": true,
+      "finding": "Potentially commercial — forbidden"
+    },
+    {
+      "match": "dynamic license",
+      "caseInsensitive": true,
+      "finding": "Dynamic license — forbidden"
+    },
+    {
+      "match": "unclear",
+      "caseInsensitive": true,
+      "finding": "Unclear license — forbidden"
+    },
+    {
+      "match": "unknown",
+      "caseInsensitive": true,
+      "finding": "Unknown license — forbidden"
+    },
+    {
+      "match": "empty license",
+      "caseInsensitive": true,
+      "finding": "Empty license — forbidden"
+    },
+    {
+      "match": "SEE LICENSE",
+      "caseInsensitive": true,
+      "finding": "Unclear / custom SEE LICENSE text — forbidden until clarified as Accepted or Accepted-with-Requirement"
+    }
+  ],
+  "compoundRules": {
+    "rule": "Reject expressions if any token is Forbidden (e.g. MIT AND AGPL-3.0)"
+  }
+}

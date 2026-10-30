@@ -1,0 +1,18 @@
+{
+  "$schema": "../../schemas/pinning-policy.schema.json",
+  "version": "1.0.0",
+  "description": "Maps PyPI 'License :: OSI Approved :: X' trove classifiers to SPDX ids so PyPI licenses classify via the existing allowed/conditional/forbidden license-tier files without modification.",
+  "map": {
+    "License :: OSI Approved :: MIT License": "MIT",
+    "License :: OSI Approved :: Apache Software License": "Apache",
+    "License :: OSI Approved :: BSD License": "BSD",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)": "GPL-2.0-only",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)": "GPL-3.0-only",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)": "LGPL-2.1-only",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)": "LGPL-3.0-only",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)": "MPL-2.0",
+    "License :: OSI Approved :: ISC License (ISCL)": "ISC",
+    "License :: OSI Approved :: Python Software Foundation License": "PSF-2.0"
+  },
+  "unmappedBehavior": "A classifier absent from this map is passed through as its raw trove string; forbidden-licenses.json's pattern list (proprietary/unclear/unknown) and the shared license classifier's default-deny both already handle an unrecognized token as Forbidden — never silently Accepted."
+}

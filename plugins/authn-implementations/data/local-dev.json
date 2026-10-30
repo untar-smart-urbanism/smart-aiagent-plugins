@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "description": "Local/dev simulation when the Apps Gateway is not in front of the app.",
+  "rule": {
+    "local": "Front-end MAY send X-User-Id so you can act as a logged-in user without real login",
+    "production": "Front-end must NEVER send X-User-Id — gateway injects it and strips client values"
+  },
+  "devFlagExamples": [
+    "import.meta.env.DEV",
+    "location.hostname === 'localhost'",
+    "location.hostname === '127.0.0.1'",
+    "process.env.NODE_ENV !== 'production' (backend only for tooling — do not trust client identity in prod)"
+  ],
+  "devUserStorageKey": "dev_user",
+  "preferredDevLoginPath": "/dev-login",
+  "warnings": [
+    "Never ship dev X-User-Id injection or mock login in production builds",
+    "Do not register SPA routes for /auth/** — in production those must be full-page gateway requests",
+    "Safest: put mock login on /dev-login and only redirect there when DEV"
+  ],
+  "curlExamples": [
+    "curl http://localhost:<port>/dangerously-skip-login/api/ping",
+    "curl -H 'X-User-Id: alice@example.com' http://localhost:<port>/api/items"
+  ]
+}

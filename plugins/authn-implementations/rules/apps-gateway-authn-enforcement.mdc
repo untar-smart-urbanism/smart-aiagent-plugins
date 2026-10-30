@@ -1,0 +1,42 @@
+---
+description: Apps Gateway authn for downstream apps — never implement login/sessions; read X-User-Id; secure-by-default; public only under /dangerously-skip-login/**; full-page /auth navigation.
+alwaysApply: true
+---
+
+# Apps Gateway authn enforcement (always on)
+
+When building or modifying apps that sit behind **Apps Gateway** (or when the user mentions login, SSO, sessions, JWT, auth, or "who is logged in"), follow the `authn-implementations` plugin.
+
+## Agent obligations
+
+1. **Read** skill `use-apps-gateway-authn` and load `data/apps-gateway.json`, `data/paths.json`.
+2. **Do not** implement login pages, password handling, JWTs, or sessions for gateway identity.
+3. **Identity:** server reads **`X-User-Id`** (email); browser uses **`GET /auth/api/me`**.
+4. **Paths:** login required by default; public routes only under **`/dangerously-skip-login/**`**.
+5. **Never** define app routes under `/auth/**` or `/actuator/**`.
+6. Login/logout via **full-page** navigation to `/auth/ui/login` and `/auth/logout` — never SPA client-side routing.
+7. Local simulation: skill `local-authn-dev` — DEV-only; never ship client `X-User-Id` in production.
+8. **Never register the app with the gateway.** That is a DevOps action (console `/auth/ui/apps`) or the platform team's. Plan and record the subdomain / owners / access mode, verify afterwards — never perform it.
+
+Trigger on create, scaffold, implement auth, add routes/APIs, or SPA login UX — even if the user never names Apps Gateway.
+
+## Quick defaults
+
+| Item | Value |
+|------|-------|
+| Identity header | `X-User-Id` (email) |
+| Public prefix | `/dangerously-skip-login/**` |
+| Check user (JS) | `GET /auth/api/me` |
+| Login | Full-page `/auth/ui/login?redirect=...` |
+| Logout | Full-page `/auth/logout` |
+
+## Forbidden
+
+- Custom gateway session / JWT verification in the app
+- Public APIs outside `/dangerously-skip-login/**`
+- SPA routes that claim `/auth/**`
+- Production front-end sending `X-User-Id`
+
+## On violation
+
+Stop, explain, and switch to Apps Gateway contract before continuing.

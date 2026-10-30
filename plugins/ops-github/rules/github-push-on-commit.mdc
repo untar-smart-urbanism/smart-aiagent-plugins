@@ -1,0 +1,46 @@
+---
+description: After every git commit, bump versions (SemVer) then push to GitHub origin. Private repos, no force-push to main.
+alwaysApply: true
+---
+
+# GitHub push policy (ops-github)
+
+When you create a **git commit** in this project:
+
+1. Ensure `origin` remote exists (if new project → use `create-github-repo` skill first)
+2. Use **Conventional Commits** (`feat:`, `fix:`, `feat!:`) so version bumps are correct — see skill `manage-versions`
+3. **Push immediately** after commit (includes automatic version check):
+
+```bash
+node plugins/ops-github/scripts/push-github.js
+```
+
+`push-github.js` runs `bump-versions.js` first — bumps `apps/`, `packages/`, and `plugins/` versions per SemVer, auto-commits if needed, then pushes. Use `--skip-bump` only when user explicitly opts out.
+
+## New project checklist
+
+Before first push for a greenfield project:
+
+1. Ask **repository name** (kebab-case)
+2. Run `check-repo-name.js` — if taken, ask user to rename
+3. Ask **owner** (user or org from `list-owners.js`)
+4. Use user description or `generate-description.js`
+5. Create with `create-repo.js` — **private** by default; for org repos also add default teams (`ACME OPS - READ-ONLY` read, `ACME OPS - VIBECODERS` write)
+
+## Prohibited
+
+- Force push to `main`/`master` unless user explicitly requests
+- Creating repo without checking name availability
+- Leaving commits unpushed without user instruction
+- Committing `.env`, secrets, or credentials
+
+## Secret hygiene before every push
+
+- **Scan the staged diff** for secrets before pushing — high-entropy strings, private keys
+  (`BEGIN ... PRIVATE KEY`), tokens, connection strings, cloud credentials. Confirm `.env` and
+  local config are gitignored.
+- **A committed secret is compromised.** If a secret ever lands in a commit (even if later
+  removed), treat it as leaked: **rotate it** — removing it from history is necessary but not
+  sufficient. Do not just amend and move on.
+- Secrets belong in a **managed secrets store** injected at runtime, never in the repo or in CI
+  provider variables baked into an image (see `code-review` → `apply-security-patterns`).

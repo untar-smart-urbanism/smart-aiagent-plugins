@@ -1,0 +1,60 @@
+---
+description: Bun + Elysia + TypeScript module architecture — routes/service/repository separation under apps/backend/src, Drizzle schema in database/.
+alwaysApply: false
+globs:
+  - "apps/backend/**"
+  - "**/apps/backend/**"
+---
+
+# Backend architecture
+
+Stack: **Bun + Elysia + TypeScript, Drizzle + PostgreSQL** (source: `golive-gate/data/build-contract.json` `allowedStack`). Reference: `code-structure/data/backend-layout.json`.
+
+Legacy projects (Vibe Start before 2026-10-07) keep their existing backend (e.g. Node/Express); audit against their existing structure as advisory, do not convert.
+
+## Directory layout (`apps/backend/src/`)
+
+| Directory | Purpose |
+|-----------|---------|
+| `index.ts` | One fluent Elysia chain; `export type App = typeof app` |
+| `modules/` | Feature modules (Elysia plugins) |
+| `config/` | App configuration |
+| `plugins/` | Cross-cutting Elysia plugins (auth, errors, CORS) |
+| `database/` | Drizzle client, `schema/`, `migrations/` |
+| `utils/` | Backend-only utilities |
+| `types/` | Backend-only types |
+
+## Module pattern (`modules/<feature>/`)
+
+```
+routes.ts       # Elysia chained plugin: HTTP + TypeBox validation only
+model.ts        # TypeBox schemas (single validator)
+service.ts      # Business logic
+repository.ts   # Drizzle queries
+types.ts        # Module-local types
+```
+
+## Requirements
+
+- Routes: `new Elysia({ prefix }).get(...).post(...)` — parse, validate with TypeBox, call service, return — **no business logic, no DB queries**
+- Services: all business rules and orchestration
+- Repositories: all Drizzle queries (parameterized; no string-concatenated SQL)
+- Build the app as **one fluent chain** and export `typeof app` — separate `app.get(...)` statements discard route types and Eden treaty collapses to `{}`
+- Conditional routes and static fallbacks go inside a handler, not outside the chain
+- Unions: `t.Union([t.Literal('a'), t.Literal('b')])`, never mapped from a constant
+- Cross-cutting concerns are Elysia plugins composed with `.use()`, not Express-style middleware
+- Shared types with frontend → `packages/shared-types`
+
+## Config & secrets placement
+
+- All secrets/config are read **once, at the boundary** — a `config/` module that reads
+  `process.env` (populated from a managed secrets store) and **validates required values at
+  startup, failing fast** on missing/malformed/placeholder secrets. Feature code imports typed
+  config from `config/`, never `process.env` directly and never hard-coded literals.
+- Cryptographic-key handling (KEK/DEK envelope, blind-index keys) stays isolated in `utils/`
+  behind a small wrap/unwrap interface, so the rest of the code is agnostic to where the key lives
+  (see `code-review` → `apply-security-patterns`).
+
+## On violation
+
+Refactor: move queries to repository, logic to service, HTTP handling to the routes plugin.

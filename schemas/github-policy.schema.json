@@ -1,0 +1,6 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://acme-org-ops.github.io/schemas/github-policy.schema.json",
+  "title": "GitHub OPS Policy",
+  "type": "object"
+}

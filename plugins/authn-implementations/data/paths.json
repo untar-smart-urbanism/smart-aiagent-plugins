@@ -1,0 +1,57 @@
+{
+  "version": "1.1.0",
+  "gatewayProbePaths": {
+    "note": "EXACT-match routes the gateway sends DIRECTLY to the application service, bypassing authentication. These are defined by the gateway, not declared by the application — a different concept from the publicPrefix below, which is where an app puts its OWN public routes.",
+    "paths": ["/health", "/api/health", "/version", "/api/version"],
+    "match": "exact — /health is a probe path, /health/detail is not",
+    "appMustNotProtectThem": "Probes, readiness/liveness checks, and ops tooling depend on these answering without a session. An app that requires auth on them breaks its own deployment. Do NOT move them under /dangerously-skip-login/ and do NOT treat an unauthenticated /health or /api/health at the root as a violation — the gateway routes them that way by design.",
+    "xUserIdAbsent": "No X-User-Id is forwarded on these paths. Never read identity in a probe handler.",
+    "nonDefaultPaths": "If the app's probe paths differ from these four, declare them in .platform/observability.yaml rather than inventing another public scheme.",
+    "extraBypasses": "Additional login bypasses (for example /dangerously-skip-login) are declared in .platform/routing.yaml when platform policy enables them."
+  },
+  "reservedPrefixes": {
+    "neverForwardedToApp": [
+      "/auth/**",
+      "/actuator/**"
+    ],
+    "alsoGatewayOwned": ["/error"],
+    "rule": "Do not define app routes under reserved prefixes. The gateway owns them."
+  },
+  "loginRequired": {
+    "default": true,
+    "policy": "secure-by-default",
+    "description": "Every path requires a valid login unless under the public prefix or among the gateway probe paths. Anonymous browsers get 302 to /auth/ui/login?redirect=<path>; API requests get 401.",
+    "guarantee": "On normal paths, if the request reaches the app, X-User-Id is present.",
+    "exceptions": ["gatewayProbePaths.paths (exact match, gateway-defined)", "publicPrefix.path (application-declared)"]
+  },
+  "publicPrefix": {
+    "path": "/dangerously-skip-login/**",
+    "policy": "Only prefix open to anonymous visitors",
+    "prefixStripped": false,
+    "notes": "Serve public routes under this exact path. X-User-Id is set only if the visitor happens to be logged in. Keep public surface small. Name is deliberate — opting out of login must be conscious."
+  },
+  "suggestedLayout": {
+    "/": "App dashboard (login required)",
+    "/api/**": "JSON APIs (login required)",
+    "/health, /api/health, /version, /api/version": "Gateway probe paths — unauthenticated by gateway design, exact match, served by the app",
+    "/dangerously-skip-login/": "The app's own public pages (anonymous OK)",
+    "/dangerously-skip-login/api/**": "Public JSON APIs (anonymous OK)"
+  },
+  "loginLogout": {
+    "login": {
+      "path": "/auth/ui/login?redirect=<same-origin-path>",
+      "navigation": "full-page only (window.location.assign or plain <a href>)",
+      "forbidden": ["router.push", "framework Link", "history.pushState for /auth/**"]
+    },
+    "logoutComplete": {
+      "path": "/auth/logout",
+      "navigation": "full-page",
+      "notes": "Clears gateway session; also CAS Single Logout when gateway uses CAS"
+    },
+    "logoutCookieOnly": {
+      "method": "POST",
+      "path": "/auth/api/logout",
+      "notes": "Clears cookie only — no CAS SLO"
+    }
+  }
+}

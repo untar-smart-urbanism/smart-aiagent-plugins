@@ -1,0 +1,152 @@
+{
+  "name": "smart-aiagent-plugins",
+  "interface": {
+    "displayName": "OPS AI Agent Plugins"
+  },
+  "plugins": [
+    {
+      "name": "tech-radar",
+      "source": {
+        "source": "local",
+        "path": "./plugins/tech-radar"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "code-structure",
+      "source": {
+        "source": "local",
+        "path": "./plugins/code-structure"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "scan-dependency",
+      "source": {
+        "source": "local",
+        "path": "./plugins/scan-dependency"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "code-review",
+      "source": {
+        "source": "local",
+        "path": "./plugins/code-review"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ops-github",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ops-github"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "project-scaffold",
+      "source": {
+        "source": "local",
+        "path": "./plugins/project-scaffold"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "golive-gate",
+      "source": {
+        "source": "local",
+        "path": "./plugins/golive-gate"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "gcs-implementations",
+      "source": {
+        "source": "local",
+        "path": "./plugins/gcs-implementations"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "authn-implementations",
+      "source": {
+        "source": "local",
+        "path": "./plugins/authn-implementations"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "gcp-cost-estimator",
+      "source": {
+        "source": "local",
+        "path": "./plugins/gcp-cost-estimator"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "sonar-issue-fixer",
+      "source": {
+        "source": "local",
+        "path": "./plugins/sonar-issue-fixer"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "vibe-knowledge",
+      "source": {
+        "source": "local",
+        "path": "./plugins/vibe-knowledge"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

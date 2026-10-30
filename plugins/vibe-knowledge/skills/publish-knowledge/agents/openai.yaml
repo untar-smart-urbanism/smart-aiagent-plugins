@@ -1,0 +1,6 @@
+interface:
+  display_name: "Publish Knowledge"
+  short_description: "Capture this chat and open a review PR"
+  default_prompt: "Use $publish-knowledge to capture verified learnings from this project chat and open a Vibe Knowledge review PR."
+policy:
+  allow_implicit_invocation: false

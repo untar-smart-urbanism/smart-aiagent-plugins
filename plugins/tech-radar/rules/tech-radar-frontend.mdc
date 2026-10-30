@@ -1,0 +1,35 @@
+---
+description: Frontend tech radar rules - Svelte stack pointer, BLUE DLS design foundation, and the legacy Vue ring.
+alwaysApply: false
+globs:
+  - "**/package.json"
+  - "**/src/**/*.svelte"
+  - "**/src/**/*.vue"
+  - "**/src/**/*.ts"
+  - "**/vite.config.*"
+  - "**/index.html"
+---
+
+# Frontend tech radar
+
+Applies when editing frontend apps. Data: `tech-radar/data/frontend.json`.
+
+## Core layers - pointer, not a copy
+
+Defined by `allowedStack` in `plugins/golive-gate/data/build-contract.json`: **Svelte + TypeScript, Vite, svelte-check · @acme/rnd-svelte.* components · Bun (package manager) · bun test + Playwright**. If this file disagrees, `allowedStack` wins.
+
+## Design foundation (every stack)
+
+Design tokens and design language stay BLUE DLS: `@acme/blue-design-tokens`, BLUE Icon, BLUE Pattern Library are mandatory. Only the BLUE DLS Vue 3 *component package* is legacy. Never hand-roll colours, spacing or type scales BLUE already defines.
+
+## Other adopt entries
+
+ESLint, window.fetch (not axios), dayjs, Sass (dart-sass), lazy-loading, Web Core Vitals.
+
+## Legacy ring (hold)
+
+`.vue` files, Vue 3, BLUE DLS Vue 3 components, Vue Router, @tanstack/vue-query, Pinia, Vitest, @vue/test-utils, NPM, PNPM, NGINX static serving (the backend serves dist/) are allowed only when PROJECT.md `## Vibe Start` is before 2026-10-07 (maintain existing code) or a tech-architect approval is recorded in `## Stack Exceptions`. Adding a new frontend app or replacing the frontend is a major improvement and always needs approval.
+
+## Never
+
+React, Vue 2, BLUE DLS Vue 2, Angular, Nuxt, axios, Webpack, Vuex, jQuery, moment.js, Yarn, node-sass, without a recorded tech-architect approval.

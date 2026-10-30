@@ -1,0 +1,19 @@
+# core dependencies
+requests
+flask==2.3.1
+django>=4.0
+attrs~=23.1
+click===8.1.7
+requests[socks]==2.31.0
+numpy==1.26.0; python_version >= "3.8"
+scipy>=1.10,<2.0
+pandas==1.5.*
+-e .
+-e ./local-pkg
+./vendor/tool
+git+https://github.com/user/some-fork.git@a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2#egg=some-fork
+git+https://github.com/user/another-fork.git@main#egg=another-fork
+-e git+https://github.com/user/editable-fork.git@main#egg=editable-fork
+https://example.com/packages/somepkg-1.0.0.tar.gz
+https://example.com/packages/hashed-2.0.0.tar.gz --hash=sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcd
+-r base-deps.txt

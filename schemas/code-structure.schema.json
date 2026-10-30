@@ -1,0 +1,6 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourcompany.com/schemas/code-structure.schema.json",
+  "title": "Code Structure Layout",
+  "type": "object"
+}

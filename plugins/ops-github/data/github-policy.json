@@ -1,0 +1,60 @@
+{
+  "$schema": "../../schemas/github-policy.schema.json",
+  "version": "1.2.1",
+  "defaultVisibility": "private",
+  "defaultOrg": "acme-org-ops",
+  "repoNamePattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+  "defaultTeams": [
+    {
+      "name": "ACME OPS - READ-ONLY",
+      "slug": "acme-ops-read-only",
+      "permission": "pull",
+      "access": "read"
+    },
+    {
+      "name": "ACME OPS - VIBECODERS",
+      "slug": "acme-ops-vibecoders",
+      "permission": "push",
+      "access": "write"
+    }
+  ],
+  "requirements": {
+    "newProject": {
+      "askRepoName": true,
+      "askOwner": true,
+      "askDescription": false,
+      "rejectIfRepoExists": true,
+      "visibility": "private",
+      "addDefaultTeamsAfterCreate": true
+    },
+    "commits": {
+      "pushAfterEveryCommit": true,
+      "neverForcePushMain": true,
+      "bumpVersionsBeforePush": true,
+      "versioningStandard": "semver-2.0.0",
+      "commitConvention": "conventional-commits"
+    }
+  },
+  "deploymentRepo": {
+    "note": "The deployment platform uses a TWO-repository model: the application repo (source) and a separate deployment repo (GitOps manifests). This block exists so our skills recognize the second repo, NOT so they create it.",
+    "namePattern": "deployment-<app_name>",
+    "owner": "defaultOrg — OPS_GITHUB_OWNER, acme-org-ops",
+    "manifestPath": "apps/<app>/<env>/",
+    "syncedBy": "Argo CD — it ALWAYS syncs from this repository, never from the application repo",
+    "createdBy": "The deployment platform at onboarding. Never by us.",
+    "visibility": "the deployment repo is accessible only to the SRE/platform team. `gh` returns 404 to us, and that means no access as often as absence — it is NOT evidence the repo is missing. Never infer onboarding state from it; confirm with the platform team or SRE.",
+    "ourRules": [
+      "Never create it — not with create-github-repo, not with gh repo create, not by hand.",
+      "Never push to it. Manifest changes go through the platform team or a reviewed PR by whoever owns deployments — not through push-to-github.",
+      "Never treat a 404 from gh as absence — the repo is SRE/platform-only and invisible to us; confirm with the platform team or SRE.",
+      "Never treat its absence as a problem. A project that has not been onboarded correctly has no deployment repo.",
+      "Never point create-github-repo at a deployment-* name; if the user asks for one, explain that onboarding creates it and stop.",
+      "If it does exist, Kubernetes manifest changes belong THERE, not in the application repo — a manifest appearing in the app repo is worth questioning."
+    ],
+    "webhooks": "Push webhooks on both repos point at https://webhooks.acme.example/webhook/github. For onboarded apps the platform's webhooks and CI pipeline own CI/CD; GitHub Actions are not required. Ask the platform team to repair missing webhooks rather than re-onboarding."
+  },
+  "descriptionFallback": {
+    "strategy": "infer-from-project",
+    "sources": ["package.json description", "README first paragraph", "folder name", "monorepo apps/"]
+  }
+}

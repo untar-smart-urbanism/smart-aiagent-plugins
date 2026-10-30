@@ -1,0 +1,31 @@
+{
+  "name": "create-plugin",
+  "version": "1.0.0",
+  "description": "Scaffold and validate new plugins in the smart-aiagent-plugins marketplace repository.",
+  "author": {
+    "name": "Acme Corp"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "scaffold",
+    "authoring",
+    "meta",
+    "marketplace"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Create Plugin",
+    "shortDescription": "Scaffold and validate new plugins in the smart-aiagent-plugins marketplace repository.",
+    "longDescription": "Scaffold and validate new plugins in the smart-aiagent-plugins marketplace repository.",
+    "developerName": "Acme Corp",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Help me use Create Plugin in this repository."
+    ]
+  }
+}

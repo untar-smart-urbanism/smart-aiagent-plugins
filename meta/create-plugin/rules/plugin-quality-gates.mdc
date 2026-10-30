@@ -1,0 +1,17 @@
+---
+description: Quality gates for plugins in the smart-aiagent-plugins marketplace.
+alwaysApply: false
+globs:
+  - "plugins/**"
+  - "meta/**"
+  - ".marketplace/**"
+---
+
+Before merging a new or updated plugin:
+
+1. `plugin.manifest.json` exists and lists accurate `components` paths
+2. Every path in `components` exists on disk (or is intentionally omitted)
+3. Platform manifests reference the same paths — no duplicated skill/agent bodies
+4. Marketplace entry added to `.marketplace/marketplace.json`
+5. `npm run validate` passes
+6. No secrets in `.mcp.json`, hooks, or commands

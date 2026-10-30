@@ -1,0 +1,36 @@
+---
+description: OWASP checklist — backend-specific (API, DB, auth, sessions).
+alwaysApply: false
+globs:
+  - "apps/backend/**"
+  - "**/apps/backend/**"
+---
+
+# OWASP — backend
+
+When editing backend code, enforce from `code-review/data/owasp-checklist.json`:
+
+- Parameterized PostgreSQL queries only (`$1`, ORM bind params)
+- Server-side validation on every endpoint (Zod/class-validator at boundary)
+- Auth middleware on protected routes; RBAC in services
+- No secrets in code — use env / a managed secrets store
+- Structured errors without internal details; audit log security events
+- Rate-limit auth and sensitive endpoints
+
+## Sensitive-data features — also apply `apply-security-patterns`
+
+When the endpoint stores, reads, looks up, or exports sensitive/PII/financial data, read skill
+`apply-security-patterns` and its checklist sections in `code-review/data/owasp-checklist.json`,
+and apply:
+
+- **Envelope encryption at rest** for sensitive columns (KEK in KMS/HSM → per-column DEK →
+  AES-256-GCM with AAD bound to model+row+column); never a single flat app-held key
+- **Keyed HMAC blind index** (own key, salted via a KDF) for encrypted values that must be looked up or deduped
+- **Field-level projection** — select only needed columns; relationship/org-chart queries select no PII
+- **Mask in lists, full value only on detail**; return aggregates (counts), not per-record sensitive values
+- **Gate bulk export above browse** (elevated grant) + **audit-log** it (actor, filters, count)
+- **Close enumeration oracles** — validate lookup input to full format before querying
+- **Per-authenticated-actor rate limiters** (mounted after auth) on export, lookup, and list/search;
+  independent counters per surface
+
+Cross-check: `scan-dependency` before new packages.

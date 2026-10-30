@@ -1,0 +1,26 @@
+---
+description: GKE Workload Identity Federation for GCS — KSA annotation, IAM binding, no key files.
+alwaysApply: false
+globs:
+  - "**/kubernetes/**"
+  - "**/k8s/**"
+  - "**/deploy/**"
+  - "**/*deployment*.yaml"
+  - "**/*deployment*.yml"
+  - "**/serviceaccount*.yaml"
+  - "**/serviceaccount*.yml"
+  - "**/apps/backend/**"
+---
+
+# GCS WIF on GKE
+
+When editing K8s manifests or backend storage clients that talk to GCS:
+
+1. Load `gcs-implementations/data/wif-gke.json`
+2. Ensure KSA has annotation `iam.gke.io/gcp-service-account: <GSA_EMAIL>`
+3. Ensure Deployment `serviceAccountName` points at that KSA
+4. Document `roles/iam.workloadIdentityUser` binding
+5. Storage client must use **Application Default Credentials** (no `keyFilename` in production): ADC picks up `GOOGLE_APPLICATION_CREDENTIALS` or workload identity.
+6. Use a **lazily-created Storage singleton** on `globalThis` (see `templates/gcs-client.ts`).
+
+Flow: KSA → metadata server token exchange → short-lived GSA credentials → ADC in the app → bucket IAM.

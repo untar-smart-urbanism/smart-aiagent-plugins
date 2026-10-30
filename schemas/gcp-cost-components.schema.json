@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourcompany.com/schemas/gcp-cost-components.schema.json",
+  "title": "GCP Cost Component Catalog",
+  "type": "object",
+  "required": ["title", "version", "quantitiesOnlyRule", "evidenceRule", "conventions", "trafficModel", "components"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "title": { "type": "string" },
+    "version": { "type": "string" },
+    "source": { "type": "string" },
+    "region": {
+      "type": "object",
+      "properties": {
+        "compute": { "type": "string" },
+        "gcsBuckets": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "quantitiesOnlyRule": { "type": "string" },
+    "evidenceRule": { "type": "string" },
+    "conventions": {
+      "type": "object",
+      "required": ["hoursPerMonth"],
+      "properties": {
+        "hoursPerMonth": { "type": "number" },
+        "hoursNote": { "type": "string" },
+        "gib": { "type": "string" },
+        "rounding": { "type": "string" },
+        "headroom": { "type": "string" },
+        "environmentColumns": { "type": "string" }
+      }
+    },
+    "trafficModel": {
+      "type": "object",
+      "required": ["vars"],
+      "properties": {
+        "description": { "type": "string" },
+        "vars": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "question", "unit", "ownerConfirmed"],
+            "properties": {
+              "id": { "type": "string" },
+              "question": { "type": "string" },
+              "unit": { "type": "string" },
+              "perEnvironment": { "type": "boolean" },
+              "global": { "type": "boolean" },
+              "ownerConfirmed": { "type": "boolean" },
+              "codebaseSignals": { "type": "array", "items": { "type": "string" } },
+              "defaultHint": {
+                "type": "object",
+                "properties": {
+                  "staging": { "type": ["string", "null"] },
+                  "production": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "environments": {
+      "type": "object",
+      "properties": {
+        "staging": { "type": "object" },
+        "production": { "type": "object" }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "service", "skuDescription", "unit", "unitConfidence", "formula", "codebaseSignals", "interviewQuestions", "perEnvironment"],
+        "properties": {
+          "id": { "type": "string" },
+          "service": {
+            "type": "string",
+            "enum": ["GKE", "Cloud SQL PostgreSQL", "Cloud Load Balancing", "Cloud KMS", "Artifact Registry", "Cloud Storage"]
+          },
+          "skuDescription": { "type": "string" },
+          "unit": { "type": "string" },
+          "unitConfidence": {
+            "type": "string",
+            "enum": ["high", "medium", "verify-with-billing-export"]
+          },
+          "unitNote": { "type": ["string", "null"] },
+          "drivers": { "type": "array", "items": { "type": "string" } },
+          "formula": { "type": "string" },
+          "formulaNote": { "type": "string" },
+          "codebaseSignals": { "type": "array", "items": { "type": "string" } },
+          "interviewQuestions": { "type": "array", "items": { "type": "string" } },
+          "perEnvironment": {
+            "type": "object",
+            "properties": {
+              "staging": { "type": "string" },
+              "production": { "type": "string" }
+            }
+          },
+          "appliesWhen": { "type": "string" },
+          "notApplicable": { "type": "string" }
+        }
+      }
+    }
+  }
+}

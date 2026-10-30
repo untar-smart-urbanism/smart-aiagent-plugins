@@ -1,0 +1,10 @@
+{
+  "name": "gcs-implementations",
+  "description": "Google Cloud Storage for app file/object storage — GCS_PROJECT_ID, GCS_BUCKET, GCS_FOLDER (default folder inside bucket), GKE Workload Identity Federation (WIF) without key files",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.1.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

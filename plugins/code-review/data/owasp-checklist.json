@@ -1,0 +1,494 @@
+{
+  "$schema": "../../schemas/owasp-checklist.schema.json",
+  "title": "OWASP Secure Coding Practices Checklist",
+  "source": "https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/stable-en/02-checklist/05-checklist",
+  "repository": "https://github.com/OWASP/www-project-secure-coding-practices-quick-reference-guide",
+  "version": "stable-en",
+  "sectionCount": 26,
+  "itemCount": 327,
+  "sections": [
+    {
+      "id": "input-validation",
+      "title": "Input validation",
+      "items": [
+        "Conduct all input validation on a trusted system (server side not client side). Do not rely only on client-side validation because it can be bypassed.",
+        "Identify all data sources and classify them into trusted and untrusted",
+        "Validate all data from untrusted sources (databases, file streams, etc)",
+        "Use a centralized input validation routine for the whole application",
+        "Specify character sets, such as UTF-8, for all input sources (canonicalization)",
+        "Encode input to a common character set before validating",
+        "All validation failures should result in input rejection",
+        "If the system supports UTF-8 extended character sets and validate after UTF-8 decoding is completed",
+        "Validate all client provided data before processing",
+        "Verify that protocol header values in both requests and responses contain only ASCII characters",
+        "Validate data from redirects",
+        "Validate for expected data types using an \"allow\" list rather than a \"deny\" list",
+        "Validate data range",
+        "Validate data length",
+        "If any potentially hazardous input must be allowed then implement additional controls",
+        "If the standard validation routine cannot address some inputs then use extra discrete checks",
+        "Utilize canonicalization to address obfuscation attacks",
+        "Validate application input according to expected field requirements. Ensure input validation covers data type, allowed characters, min/max length, nullability, required fields, duplicates, numeric ranges, enumerations, and patterns.",
+        "Validate all user-controlled request values. Review headers, cookies, query strings, form fields, hidden fields, and parameters for proper validation.",
+        "Validate and sanitize input for unavoidable external calls. Apply strict allowlisting, length limits, encoding, escaping, and safe argument separation."
+      ]
+    },
+    {
+      "id": "output-encoding",
+      "title": "Output encoding",
+      "items": [
+        "Conduct all output encoding on a trusted system (server side not client side). Ensure user-controlled values are encoded before being rendered so injected scripts cannot execute.",
+        "Utilize a standard, tested routine for each type of outbound encoding",
+        "Specify character sets, such as UTF-8, for all outputs",
+        "Contextually output encode all data returned to the client from untrusted sources. Ensure output is validated or encoded before rendering or returning to users to prevent unsafe processing and XSS.",
+        "Ensure the output encoding is safe for all target systems",
+        "Contextually sanitize all output of un-trusted data to queries for SQL, XML, and LDAP",
+        "Sanitize all output of untrusted data to operating system commands"
+      ]
+    },
+    {
+      "id": "authentication-and-password-management",
+      "title": "Authentication and password management",
+      "items": [
+        "Require authentication for all pages and resources, except those",
+        "All authentication controls must be enforced on a trusted system",
+        "Establish and utilize standard, tested, authentication services whenever possible",
+        "Use a centralized implementation for all authentication controls,",
+        "Segregate authentication logic from the resource being requested and",
+        "All authentication controls should fail securely",
+        "All administrative and account management functions must be at least",
+        "If your application manages a credential store, use cryptographically strong one-way salted hashes. Prefer secure password hashing; do not store plaintext passwords.",
+        "Password hashing must be implemented on a trusted system server side not client side)",
+        "Validate the authentication data only on completion of all data input",
+        "Authentication failure responses should not indicate which part of the authentication data was incorrect. Use generic messages such as login failure instead of revealing whether user ID or password is wrong.",
+        "Utilize authentication for connections to external systems that involve sensitive information or functions",
+        "Authentication credentials for accessing services external to the",
+        "Use only HTTP POST requests to transmit authentication credentials. Ensure authentication and session data are not transmitted in URLs; use safe request methods and secure headers.",
+        "Only send non-temporary passwords over an encrypted connection or as encrypted data. Ensure login and credential exchange use encrypted transport.",
+        "Enforce password complexity requirements established by policy or regulation",
+        "Enforce password length requirements established by policy or regulation",
+        "Password entry should be obscured on the user's screen. Ensure sensitive form fields are not visible in clear text during input.",
+        "Enforce account disabling after an established number of invalid login attempts. Ensure brute-force protection exists through lockout, throttling, rate limiting, or equivalent controls.",
+        "Password reset and changing operations require the same level of",
+        "Password reset questions should support sufficiently random answers",
+        "If using email based resets, only send email to a pre-registered",
+        "Temporary passwords and links should have a short expiration time",
+        "Enforce the changing of temporary passwords on the next use",
+        "Notify users when a password reset occurs",
+        "Prevent password re-use",
+        "Passwords should be at least one day old before they can be changed,",
+        "Enforce password changes based on requirements established in policy",
+        "Disable \"remember me\" functionality for password fields",
+        "The last use (successful or unsuccessful) of a user account should",
+        "Implement monitoring to identify attacks against multiple user accounts, utilizing the same password",
+        "Change all vendor-supplied default passwords and user IDs or disable the associated accounts",
+        "Re-authenticate users prior to performing critical operations",
+        "Use Multi-Factor Authentication for highly sensitive or high value transactional accounts",
+        "If using third party code for authentication, inspect the code",
+        "User credentials must be managed securely. Ensure credentials are protected at rest, in transit, and during processing.",
+        "Login activity should be logged. Ensure successful and failed login attempts are logged without exposing passwords or secrets."
+      ]
+    },
+    {
+      "id": "session-management",
+      "title": "Session management",
+      "items": [
+        "Use the server or framework's session management controls. The",
+        "Session identifier creation must always be done on a trusted system (server side not client side). Use secure transport, strong random session identifiers, rotation on authentication or privilege transition, and avoid user-selected session IDs.",
+        "Session management controls should use well vetted algorithms that",
+        "Set the domain and path for cookies containing authenticated session",
+        "Logout functionality should fully terminate the associated session or connection",
+        "Logout functionality should be available from all pages protected by authorization",
+        "Establish a session inactivity timeout that is as short as possible,",
+        "Disallow persistent logins and enforce periodic session",
+        "If a session was established before login, close that session and",
+        "Generate a new session identifier on any re-authentication",
+        "Do not allow concurrent logins with the same user ID",
+        "Do not expose session identifiers in URLs, error messages or logs. Reject session tokens in query strings, paths, referrers, logs, or browser history.",
+        "Implement appropriate access controls to protect server side session data",
+        "Generate a new session identifier and deactivate the old one periodically",
+        "Generate a new session identifier if the connection security changes",
+        "Consistently utilize HTTPS rather than switching between HTTP to HTTPS",
+        "Supplement standard session management for sensitive server-side",
+        "Supplement standard session management for highly sensitive or",
+        "Set the \"secure\" attribute for cookies transmitted over an TLS connection",
+        "Set cookies with the HttpOnly attribute, unless you specifically",
+        "Do not store sensitive data in cookies. Reject storage of credentials, personal data, card data, or other sensitive values in cookies.",
+        "Cookies must have an expiration policy. Ensure cookies are configured with appropriate expiration or max-age.",
+        "Cookie usage must support user consent where required. Ensure applications obtain consent when storing cookies that require approval.",
+        "Sensitive cookie values must be encrypted when cookie storage is unavoidable. Avoid sensitive cookie storage; if unavoidable, encrypt according to approved standards."
+      ]
+    },
+    {
+      "id": "access-control",
+      "title": "Access control",
+      "items": [
+        "Use only trusted system objects, e.g. server side session objects,",
+        "Use a single site-wide component to check access authorization. This. Ensure roles, privileges, and access rights are enforced server-side.",
+        "Access controls should fail securely",
+        "Deny all access if the application cannot access its security",
+        "Enforce authorization controls on every request, including those made by server side scripts. Test direct object access, forced browsing, role switching, privilege escalation, and unauthorized function access.",
+        "Segregate privileged logic from other application code",
+        "Restrict access to files or other resources, including those outside",
+        "Restrict access to protected URLs to only authorized users",
+        "Restrict access to protected functions to only authorized users. Validate that access permissions follow job responsibility and least privilege.",
+        "Restrict direct object references to only authorized users. Ensure resources cannot be accessed without authorization even if URLs or object identifiers are guessed.",
+        "Restrict access to services to only authorized users",
+        "Restrict access to application data to only authorized users",
+        "Restrict access to user and data attributes and policy information used by access controls",
+        "Restrict access security-relevant configuration information to only authorized users",
+        "Server side implementation and presentation layer representations of access control rules must match",
+        "If state data must be stored on the client, use encryption and integrity checking on the server side",
+        "Enforce application logic flows to comply with business rules",
+        "Limit the number of transactions a single user or device can perform",
+        "Use the \"referer\" header as a supplemental check only, it should",
+        "If long authenticated sessions are allowed, periodically re-validate",
+        "Implement account auditing and enforce the disabling of unused accounts",
+        "The application must support disabling of accounts",
+        "Service accounts or accounts supporting connections to or from",
+        "Create an Access Control Policy to document an application's"
+      ]
+    },
+    {
+      "id": "cryptographic-practices",
+      "title": "Cryptographic practices",
+      "items": [
+        "All cryptographic functions used to protect secrets from the. Use approved encryption protocols and algorithms for sensitive data at rest or in transit.",
+        "Protect secrets from unauthorized access. Ensure credentials, secrets, tokens, keys, and sensitive configuration values are not stored insecurely.. Do not expose keys in source code, logs, client-side bundles, public repositories, or unsecured configuration.",
+        "Cryptographic modules should fail securely",
+        "All random numbers, random file names, random GUIDs, and random. Use cryptographically secure RNG for IVs, tokens, keys, nonces, and session identifiers.",
+        "Cryptographic modules used by the application should be compliant to. Use publicly tested cryptographic libraries without known vulnerabilities; avoid custom cryptography.",
+        "Establish and utilize a policy and process for how cryptographic",
+        "Encapsulate cryptographic functions in dedicated modules. Keep crypto implementation centralized and review it periodically.",
+        "Use approved cryptographic algorithms and key lengths. Prefer acceptable algorithms aligned with NIST SP800-131A Rev. 2 or ISO standards; use minimum 128-bit symmetric encryption where required.",
+        "Use TLS 1.2 or higher for sensitive data in transit. Ensure public-network transmission of sensitive/card data uses strong encrypted transport.",
+        "Do not include unwrapped data encryption keys in backups. Ensure encryption keys are stored or backed up only in protected/wrapped form.",
+        "Document and review cipher suites and cryptographic protocols. Ensure crypto protocols and cipher suites are inventoried and reviewed periodically."
+      ]
+    },
+    {
+      "id": "error-handling-and-logging",
+      "title": "Error handling and logging",
+      "items": [
+        "Do not disclose sensitive information in error responses, including. Ensure stack traces, internal paths, SQL errors, service names, debug messages, and implementation details are not returned to clients.",
+        "Use error handlers that do not display debugging or stack trace information",
+        "Implement generic error messages and use custom error pages. Return generic, useful error messages without disclosing internal details.",
+        "The application should handle application errors and not rely on the server configuration",
+        "Properly free allocated memory when error conditions occur",
+        "Error handling logic associated with security controls should deny access by default. On error, timeout, invalid output, or failed dependency calls, deny unsafe actions and avoid leaking sensitive data.",
+        "All logging controls should be implemented on a trusted system",
+        "Logging controls should support both success and failure of specified security events",
+        "Ensure logs contain important log event data",
+        "Ensure log entries that include un-trusted data will not execute as",
+        "Restrict access to logs to only authorized individuals",
+        "Utilize a central routine for all logging operations",
+        "Do not store sensitive information in logs, including unnecessary. Ensure passwords, CVV, PAN, NIK, NPWP, phone numbers, email, birth date, address, and similar sensitive data are masked when displayed or logged.. Mask or omit credentials, tokens, passwords, PAN, CVV, personal data, secrets, and encryption keys from logs.",
+        "Ensure that a mechanism exists to conduct log analysis",
+        "Log all input validation failures",
+        "Log all authentication attempts, especially failures",
+        "Log all access control failures",
+        "Log all apparent tampering events, including unexpected changes to state data",
+        "Log attempts to connect with invalid or expired session tokens",
+        "Log all system exceptions",
+        "Log all administrative functions, including changes to the security configuration settings",
+        "Log all backend TLS connection failures",
+        "Log cryptographic module failures",
+        "Use a cryptographic hash function to validate log entry integrity",
+        "Log exception details automatically. Ensure detailed errors are logged securely for troubleshooting and security monitoring.",
+        "Enable logging for monitoring and audit. Ensure security-relevant events, errors, authentication, authorization, and API activity are logged.",
+        "Log errors and anomalies for security detection. Ensure logs support detection of implementation defects, attack attempts, abnormal API activity, and authentication failures."
+      ]
+    },
+    {
+      "id": "data-protection",
+      "title": "Data protection",
+      "items": [
+        "Implement least privilege, restrict users to only the functionality,",
+        "Protect all cached or temporary copies of sensitive data stored on",
+        "Encrypt highly sensitive stored information, such as authentication",
+        "Protect server-side source-code from being downloaded by a user. Ensure source files, debug files, source maps, repositories, or backup files are not placed in public web folders.",
+        "Do not store passwords, connection strings or other sensitive. Reject code containing hardcoded passwords, API keys, tokens, private keys, database credentials, or service credentials.. Reject hardcoded passwords in source code, scripts, tests, configuration, and deployment files.",
+        "Remove comments in user accessible production code that may reveal",
+        "Remove unnecessary application and system documentation as this can",
+        "Do not include sensitive information in HTTP GET request parameters",
+        "Disable auto complete features on forms expected to contain. Apply no-cache controls and avoid storing credentials in browser autocomplete where applicable.",
+        "Disable client side caching on pages containing sensitive information. Use appropriate HTTP headers or equivalent controls to prevent browser caching of pages containing sensitive information.",
+        "The application should support the removal of sensitive data when",
+        "Implement appropriate access controls for sensitive data stored on"
+      ]
+    },
+    {
+      "id": "communication-security",
+      "title": "Communication security",
+      "items": [
+        "Implement encryption for the transmission of all sensitive. Ensure credentials, financial transaction data, card data, and personal data are not sent over networks in plain text.",
+        "TLS certificates should be valid and have the correct domain name,",
+        "Failed TLS connections should not fall back to an insecure connection",
+        "Utilize TLS connections for all content requiring authenticated access and for all other sensitive information",
+        "Utilize TLS for connections to external systems that involve sensitive information or functions",
+        "Utilize a single standard TLS implementation that is configured appropriately",
+        "Specify character encodings for all connections",
+        "Filter parameters containing sensitive information from the HTTP referer, when linking to external sites"
+      ]
+    },
+    {
+      "id": "system-configuration",
+      "title": "System configuration",
+      "items": [
+        "Ensure servers, frameworks and system components are running the latest approved version",
+        "Ensure servers, frameworks and system components have all patches issued for the version in use",
+        "Turn off directory listings",
+        "Restrict the web server, process and service accounts to the least privileges possible",
+        "When exceptions occur, fail securely",
+        "Remove all unnecessary functionality and files",
+        "Remove test code or any functionality not intended for production, prior to deployment",
+        "Prevent disclosure of your directory structure in the robots.txt",
+        "Define which HTTP methods, Get or Post, the application will support",
+        "Disable unnecessary HTTP methods",
+        "If the web server handles different versions of HTTP ensure that they",
+        "Remove unnecessary information from HTTP response headers related to",
+        "The security configuration store for the application should be able",
+        "Implement an asset management system and register system components",
+        "Isolate development environments from the production network and",
+        "Implement a software change control system to manage and record"
+      ]
+    },
+    {
+      "id": "database-security",
+      "title": "Database security",
+      "items": [
+        "Use strongly typed parameterized queries. Treat all input as data, not commands, and validate input even when parameterized queries are used.",
+        "Utilize input validation and output encoding and be sure to address",
+        "Ensure that variables are strongly typed",
+        "The application should use the lowest possible level of privilege. Ensure application, service, and database accounts only have permissions needed for their function.",
+        "Use secure credentials for database access",
+        "Connection strings should not be hard coded within the application.",
+        "Use stored procedures to abstract data access and allow for the",
+        "Close the connection as soon as possible",
+        "Remove or change all default database administrative passwords",
+        "Turn off all unnecessary database functionality",
+        "Remove unnecessary default vendor content (for example sample schemas)",
+        "Disable any default accounts that are not required to support business requirements",
+        "The application should connect to the database with different. Ensure application/service database accounts only have required permissions."
+      ]
+    },
+    {
+      "id": "file-management",
+      "title": "File management",
+      "items": [
+        "Do not pass user supplied data directly to any dynamic include function",
+        "Require authentication before allowing a file to be uploaded",
+        "Limit the type of files that can be uploaded to only those types",
+        "Validate uploaded files are the expected type by checking file",
+        "Do not save files in the same web context as the application",
+        "Prevent or restrict the uploading of any file that may be",
+        "Turn off execution privileges on file upload directories",
+        "Implement safe uploading in UNIX by mounting the targeted file",
+        "When referencing existing files, use an allow-list of allowed file names and types",
+        "Do not pass user supplied data into a dynamic redirect",
+        "Do not pass directory or file paths, use index values mapped to pre-defined list of paths",
+        "Never send the absolute file path to the client",
+        "Ensure application files and resources are read-only",
+        "Scan user uploaded files for viruses and malware. Ensure file upload features scan or validate uploaded content before storage or execution."
+      ]
+    },
+    {
+      "id": "memory-management",
+      "title": "Memory management",
+      "items": [
+        "Utilize input and output controls for untrusted data",
+        "Check that the buffer is as large as specified",
+        "When using functions that accept a number of bytes ensure that NULL terminatation is handled correctly",
+        "Check buffer boundaries if calling the function in a loop and protect against overflow",
+        "Truncate all input strings to a reasonable length before passing them to other functions",
+        "Specifically close resources, don't rely on garbage collection",
+        "Use non-executable stacks when available",
+        "Avoid the use of known vulnerable functions",
+        "Properly free allocated memory upon the completion of functions and at all exit points",
+        "Overwrite any sensitive information stored in allocated memory at all exit points from the function"
+      ]
+    },
+    {
+      "id": "general-coding-practices",
+      "title": "General coding practices",
+      "items": [
+        "Use tested and approved managed code rather than creating new unmanaged code for common tasks",
+        "Utilize task specific built-in APIs to conduct operating system. Prefer safe APIs that pass arguments directly without shell expansion.",
+        "Use checksums or hashes to verify the integrity of interpreted code,",
+        "Utilize locking to prevent multiple simultaneous requests or use a",
+        "Protect shared variables and resources from inappropriate concurrent",
+        "Explicitly initialize all your variables and other data stores,",
+        "In cases where the application must run with elevated privileges,",
+        "Avoid calculation errors by understanding your programming language's underlying representation",
+        "Do not pass user supplied data to any dynamic execution function. Do not invoke OS shells, command interpreters, or dynamic execution paths unless strictly necessary.",
+        "Restrict users from generating new code or altering existing code",
+        "Review all secondary applications, third party code and libraries to. Review third-party libraries for known vulnerabilities, unsafe usage, unnecessary permissions, and maintained versions.",
+        "Implement safe updating using encrypted channels",
+        "Code changes must be reviewed for security. Ensure new or changed code is reviewed automatically or manually for secure coding compliance before release.",
+        "Use sandboxing for external command execution where available. Ensure sandboxing, safe argument separation, validation, and escaping are used for unavoidable command execution."
+      ]
+    },
+    {
+      "id": "api-security",
+      "title": "API security",
+      "items": [
+        "APIs must use secure authentication and authorization. Ensure API key, token, OAuth 2.0, or equivalent controls are implemented securely.",
+        "API access must follow least privilege. Ensure users, services, and systems only receive access required for their function.",
+        "API communication must use HTTPS/TLS. Ensure all API traffic is encrypted using current secure TLS configuration.",
+        "Sensitive API endpoints require additional controls. Use controls such as IP allowlisting, WAF, brute-force protection, rate limiting, or DoS protection where applicable.",
+        "APIs must not expose irrelevant internal data or functions. Ensure APIs do not disclose stack traces, internal paths, implementation details, excessive fields, or internal-only functions.",
+        "API versioning must be managed formally. Ensure API changes are versioned and backward compatibility/security impact is considered.",
+        "API activity must be logged and monitored. Log access, errors, and anomalies for incident detection and audit trail.",
+        "Unused APIs must be disabled or removed safely. Identify deprecated or unused endpoints and ensure they are disabled, removed, or access-restricted."
+      ]
+    },
+    {
+      "id": "pan-card-data-protection",
+      "title": "PAN and card data protection",
+      "items": [
+        "PAN must be protected if stored. Ensure PAN is hashed, tokenized, encrypted, truncated, or masked according to approved standards.",
+        "PAN must be protected with strong cryptography when sent through end-user messaging. Reject plaintext PAN in email, chat, notification, or messaging integrations.",
+        "PAN display must be masked. Only display allowed portions such as BIN and last 4 digits where applicable.",
+        "CVV must be fully masked when displayed. Ensure CVV is never displayed in clear text and is not logged or stored insecurely."
+      ]
+    },
+    {
+      "id": "ai-assisted-development",
+      "title": "AI-assisted development safety",
+      "items": [
+        "Do not send sensitive company information to AI systems without valid business purpose and approval. Prevent prompts, examples, logs, code snippets, secrets, credentials, internal data, restricted data, confidential data, or personal data from being sent to AI tools unless approved.",
+        "AI-generated output must be reviewed before use. Verify security, correctness, legal/privacy impact, and implementation suitability before accepting generated code or recommendations.",
+        "Do not use AI to generate malware or illegal security abuse content. Reject code or instructions that enable malware, fraud, privacy violation, unauthorized access, or other prohibited activity.",
+        "Protect sensitive and personal data used with AI systems. Apply masking, encryption, minimization, and consent requirements when AI usage involves sensitive or personal data.",
+        "Classify every committer identity in git history as human, registered automation, or unregistered automation using the trusted-automation registry (data/trusted-automation.json). Registered automation acting within its authorized activity and paths is expected — record it as informational, not as an untrusted-actor finding.",
+        "Do not allow unregistered non-human identities to push unreviewed code. An unregistered automated committer with direct push access, or a registered automation identity committing outside its authorized activity or paths, is a must-fix finding (possible misconfiguration or identity misuse).",
+        "Never exempt commit content from review based on committer identity. Git author and committer fields are spoofable (attestation-grade evidence), so registry membership scopes identity findings only — code committed by registered automation is evaluated against this checklist like any other code."
+      ]
+    },
+    {
+      "id": "envelope-encryption-at-rest",
+      "title": "Envelope encryption at rest",
+      "items": [
+        "Sensitive fields are encrypted with a KEK-wraps-DEK envelope, not a single flat app-held key",
+        "The KEK lives in a managed KMS or HSM; key material never enters app memory, config, or the repo",
+        "The KEK reference is validated at startup and fails fast on a malformed value",
+        "There is one DEK per encrypted column (a column name shared across tables shares one DEK), not one shared DEK or a single coarse per-category key",
+        "DEKs are generated with a CSPRNG and stored only in wrapped form, never plaintext at rest",
+        "DEKs are provisioned by an explicit one-time step; request-serving code never lazily creates a DEK",
+        "Field encryption uses AES-256-GCM with a fresh random IV per value",
+        "Additional Authenticated Data binds each ciphertext to its model, row id, and column",
+        "Ciphertext is self-describing (embeds a scheme version and the key id used) so rotation is transparent",
+        "Numeric fields are padded to a fixed width before encryption to avoid a magnitude/length leak",
+        "The wrapped-DEK key table is backed up with the same rigor as primary data",
+        "A DEK/KEK rotation path exists and no still-referenced key value is ever deleted",
+        "Fields used in DB-side aggregation are either left plaintext (documented) or handled via a blind-index design"
+      ]
+    },
+    {
+      "id": "blind-index-for-encrypted-lookups",
+      "title": "Blind index for encrypted lookups",
+      "items": [
+        "Exact-match lookups on encrypted values use a keyed HMAC blind index, not a bare hash",
+        "The blind index uses its own dedicated key, separate from the field's encryption DEK",
+        "A separate secret salt is mixed into the blind-index key via a KDF (not the bare DEK), held apart from the KEK/DEK, and guarded by a fail-fast boot check plus a stored salt fingerprint",
+        "Input is normalized/canonicalized before indexing so equal values match",
+        "The index is used only for exact match, never prefix or range search",
+        "Access to the index column is restricted as tightly as the ciphertext column",
+        "The offline-brute-force residual risk for low-entropy identifiers is documented"
+      ]
+    },
+    {
+      "id": "minimize-sensitive-data-exposure",
+      "title": "Minimize sensitive-data exposure",
+      "items": [
+        "Each read path selects only the columns it needs; relationship/org-chart endpoints select no PII",
+        "List responses mask sensitive identifiers; the full value is returned only by the detail route",
+        "Masking is enforced server-side, not only in the client display",
+        "Bulk export requires a higher privilege than browse (e.g. EDIT / explicit export grant)",
+        "Bulk export is rate-limited and writes an audit-log entry (who, what subset, when)",
+        "Existence/uniqueness/lookup endpoints reject short, partial, or malformed input before querying",
+        "Computations over per-record sensitive values return only aggregates, never per-record figures",
+        "Every direct object reference verifies caller authorization for that specific object (no IDOR)"
+      ]
+    },
+    {
+      "id": "session-and-token-lifecycle",
+      "title": "Session and token lifecycle",
+      "items": [
+        "Every token carries a unique id claim checked against a revocation store on each request",
+        "Logout and password/credential change revoke the current token immediately",
+        "Expired revocation records are pruned to keep the store small",
+        "A sliding idle timeout expires inactive browser sessions before the token's absolute expiry",
+        "The idle window is less than or equal to the token's absolute lifetime",
+        "Signing-secret rotation supports a previous-secret window for zero-downtime rotation",
+        "Startup refuses to boot on a missing, too-short, or known-weak signing secret",
+        "Session cookies are HttpOnly, Secure in production, and never appear in URLs or logs"
+      ]
+    },
+    {
+      "id": "csrf-defense-in-depth",
+      "title": "CSRF defense-in-depth",
+      "items": [
+        "Session cookies set a SameSite attribute (Strict preferred; Lax only with a documented reason)",
+        "All mutating routes require a custom header (or synchronizer/double-submit token) the app client sets",
+        "No state-changing operation is reachable via an HTTP GET"
+      ]
+    },
+    {
+      "id": "secrets-management",
+      "title": "Secrets management",
+      "items": [
+        "No secret, key, or connection string is committed to source or a tracked config file",
+        "Production secrets are injected from a managed secrets store, not a committed file or baked image",
+        "A startup module validates required secrets and fails fast on missing/malformed/placeholder values",
+        "Secrets and connection strings are never written to logs or client error responses",
+        "A committed-secret is treated as compromised and rotated, not just scrubbed from history",
+        "Workload identity / short-lived credentials are used instead of static keys where the platform allows"
+      ]
+    },
+    {
+      "id": "security-audit-logging",
+      "title": "Security audit logging",
+      "items": [
+        "Authentication attempts (success and failure, with source IP) are audit-logged",
+        "Access-control failures and privilege/role changes are audit-logged",
+        "Sensitive-data exports and bulk mutations are audit-logged with actor, action, resource, and a filter/count summary",
+        "Administrative actions (config, hard deletes, user management) are audit-logged",
+        "Audit entries contain no PII, secrets, tokens, or full sensitive identifiers",
+        "Read access to the audit log is restricted and the log is indexed for analysis"
+      ]
+    },
+    {
+      "id": "abuse-resistant-rate-limiting",
+      "title": "Abuse-resistant rate limiting",
+      "items": [
+        "Sensitive surfaces are rate-limited per authenticated actor, not by shared IP alone",
+        "Per-user limiters are mounted after authentication; the login limiter falls back to IP",
+        "Login, export, lookup/existence, and list/search each have independent counters",
+        "The app trusts the proxy hop so limiters see the real client IP",
+        "Rate-limit breaches return HTTP 429 with standard RateLimit-* headers",
+        "State-changing business operations also carry a transaction-velocity limit"
+      ]
+    },
+    {
+      "id": "container-and-pod-hardening",
+      "title": "Container and Pod hardening",
+      "items": [
+        "The Dockerfile ends with an explicit non-root USER (UID >= 10000 preferred), not the base image default",
+        "The base image is minimal — distroless, alpine, or a -slim variant, not a full OS image",
+        "No floating base tag: a version tag for development and a @sha256 digest for anything promoted to production",
+        "The build is multi-stage — build toolchains, dev dependencies, and .git are absent from the final layer",
+        "No secret exists in any image layer: no COPY of .env, no token passed via ARG or ENV",
+        "A .dockerignore excludes env files, keys, and .git from the build context",
+        "Package installs are pinned and their caches cleaned within the same RUN layer",
+        "Pod manifests set runAsNonRoot: true with an explicit runAsUser and runAsGroup >= 10000",
+        "Pod manifests set allowPrivilegeEscalation: false, leave privileged unset, and drop all capabilities",
+        "readOnlyRootFilesystem is true, with an explicit emptyDir volume for every writable path the app needs",
+        "seccompProfile.type is RuntimeDefault, and CPU and memory requests and limits are both set",
+        "No hostPath volume, hostNetwork, hostPID, or hostIPC is used",
+        "Trivy image and config scans for the target environment report no CRITICAL, and each HIGH has an owner and a fix rather than an approval used as a workaround",
+        "Pod-manifest items are evaluated only where a deployment-<app> checkout exists; their absence before onboarding is recorded as expected, not as a failed item"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourcompany.com/schemas/owasp-checklist.schema.json",
+  "title": "Secure Coding Checklist (OWASP + organization standards)",
+  "type": "object",
+  "required": ["source", "sections"],
+  "properties": {
+    "source": { "type": "string" },
+    "repository": { "type": "string" },
+    "version": { "type": "string" },
+    "title": { "type": "string" },
+    "sectionCount": { "type": "integer" },
+    "itemCount": { "type": "integer" },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "url": { "type": "string" },
+          "repository": { "type": "string" },
+          "version": { "type": "string" },
+          "document": { "type": "string" },
+          "documentNumber": { "type": "string" },
+          "publishedDate": { "type": "string" },
+          "scope": { "type": "string" },
+          "dataFile": { "type": "string" }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "items"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "items": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "vibe-knowledge",
+  "description": "Publish verified, sanitized learnings from one project chat to a review PR with one command; recall approved topic-indexed cards from a private repository.",
+  "author": {
+    "name": "Acme Corp",
+    "url": "https://github.com/acme-org-ops"
+  },
+  "version": "1.3.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

@@ -1,0 +1,32 @@
+{
+  "name": "sonar-issue-fixer",
+  "version": "1.2.0",
+  "description": "Fix SonarQube issues and check quality gate status against the OPS SonarQube server (platform-aware: acme:<app> keys, the platform-default gate, and Community Build default-branch scope)",
+  "author": {
+    "name": "Acme Corp"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "sonarqube",
+    "sonar",
+    "quality-gate",
+    "code-quality",
+    "security-hotspots"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Sonar Issue Fixer",
+    "shortDescription": "Fix SonarQube issues and check quality gate status against the OPS SonarQube server (platform-aware: acme:<app> keys, th",
+    "longDescription": "Fix SonarQube issues and check quality gate status against the OPS SonarQube server (platform-aware: acme:<app> keys, the platform-default gate, and Community Build default-branch scope)",
+    "developerName": "Acme Corp",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Help me use Sonar Issue Fixer in this repository."
+    ]
+  }
+}

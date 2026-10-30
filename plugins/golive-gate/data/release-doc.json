@@ -1,0 +1,72 @@
+{
+  "title": "vibe-release.json Release Document Spec",
+  "source": "Non-Tech Change Management with AI Assistance Playbook",
+  "version": "1.8.0",
+  "outputFile": "vibe-release.json",
+  "outputLocation": "Project root, committed to the repo",
+  "structure": "Flat, single-level object — every field is a top-level key; no nested objects.",
+  "fieldAudience": "Every field serves our own governance record and the Vibe Code Project Registry. Keep them accurate — the registry and human reviewers rely on them — but never describe them as something the deployment platform enforces.",
+  "generateOn": "Every check-golive-readiness run, regardless of verdict — the file records our governance verdict for the evaluated commit. That gate runs either directly via /vibe-check, or chained at the end of /vibe-review after an independent reviewer seals docs/REVIEW-PROOF.md (so the sealed review reaches this file without a separate /vibe-check re-run).",
+  "commitPolicy": "Via /vibe-check the gate writes the file only and the user commits + pushes it (e.g. /push-github). Via /vibe-review, seal-review-proof commits it automatically as a second reviewer commit on top of the seal (so the reviewer's handoff is never left uncommitted); the reviewer only pushes. Either way the file sits one commit above target-commit-hash. Never hand-edit release-gate-status or target-commit-hash — re-run the gate instead.",
+  "reviewGateByRisk": {
+    "low": "self",
+    "medium": "independent-review",
+    "high": "formal-review"
+  },
+  "releaseGateStatusValues": {
+    "note": "OUR governance verdict for the evaluated commit, for humans, reviewers, and the Vibe Code Project Registry. It is not a platform deployment gate. Treat a non-READY status as 'our own playbook says do not ship this yet', enforced by people and process, not by the platform.",
+    "READY": "Every applicable gate item passes and approvals are recorded — cleared to request deployment",
+    "CONDITIONAL": "Agent-checkable items pass but human approvals are pending — named approvers must sign off first",
+    "NOT-READY": "Blocking items open — do not request deployment"
+  },
+  "projectStatusByVerdict": {
+    "READY": "ready-to-deploy",
+    "CONDITIONAL": "pending-approval",
+    "NOT-READY": "blocked"
+  },
+  "fields": {
+    "review-gate": "reviewGateByRisk[riskLevel] — records which review route our playbook requires for this tier",
+    "review-verdict": "The reviewer-sealed verdict from docs/REVIEW-PROOF.md / the latest PROJECT.md ## Review Evidence entry: PASS | FAIL | INCOMPLETE, else null when no proof exists. Refreshed on every gate run — including the run chained at the end of /vibe-review right after the proof is sealed",
+    "review-proof": "Path to the sealed proof — \"docs/REVIEW-PROOF.md\" when it exists, else null. A human-traceable pointer back to the full proof (reviewer identity, independence, checklist results live there)",
+    "reviewed-at": "ISO date the proof was sealed, else null",
+    "release-gate-status": "Our governance verdict for this run: READY | CONDITIONAL | NOT-READY (see releaseGateStatusValues — internal, not a platform gate)",
+    "target-commit-hash": "git rev-parse HEAD at gate time — the commit this gate record actually evaluated, so a later reader can tell whether the verdict still applies. It does NOT select what gets deployed",
+    "generated-at": "ISO date of the gate run — lets a reader judge whether this record is stale",
+    "start-vibe": "ISO date the vibe-coding of this project started, for measuring project-start → staging/production duration. Source: PROJECT.md ## Vibe Start when present (stamped by /start-vibe at project start, or by /adopt-vibe as the first git commit date for brownfield projects); fallback when the section is empty/absent: the earliest git commit's author date (git log --reverse --date=short --format=%ad | head -1). Effectively never null in a repo with history",
+    "project-name": "package.json name, else the repo directory name",
+    "project-owner": "PROJECT.md ## Project Owner — a single GitHub username (no leading @, no URL), verified to exist and to be a acme-org-ops member by the gate item ownership-support-contacts in golive-gate.json",
+    "support-contact": "PROJECT.md ## Support Contact — a single email address, lowercased; public webmail and shared lab/group accounts are rejected by the gate item ownership-support-contacts",
+    "gcp-label-company": "PROJECT.md ## Label → Company — one of gcp-label-set.labels.gcp-label-company.allowed in golive-gate.json; used for cost showback",
+    "gcp-label-div": "PROJECT.md ## Label → Division — one of gcp-label-set.labels.gcp-label-div.allowed in golive-gate.json (operations | finance | marketing | commercial)",
+    "gcp-label-dept": "PROJECT.md ## Label → Department — free-text owning department, else null",
+    "project-scope": "PROJECT.md ## Access Status → \"internal\" | \"external\"",
+    "risk-level": "PROJECT.md ## Risk Level → \"low\" | \"medium\" | \"high\"",
+    "project-status": "projectStatusByVerdict[verdict]",
+    "app-web-url": "URL from PROJECT.md ## Hosting Location if recorded, else null",
+    "repo-url": "git remote get-url origin — the APPLICATION repo",
+    "live-version": "Single string: root package.json version; monorepo with a private root → the highest version among apps/*/package.json (ops-github versioning-policy.json semantics)"
+  },
+  "registryNote": "The flat project fields (project-name … live-version) are for the Vibe Code Project Registry and internal governance; any registry integration is separate from the deployment platform's CI/CD.",
+  "example": {
+    "review-gate": "independent-review",
+    "review-verdict": "PASS",
+    "review-proof": "docs/REVIEW-PROOF.md",
+    "reviewed-at": "2026-07-10",
+    "release-gate-status": "CONDITIONAL",
+    "target-commit-hash": "3f9c2e1a0b4d5e6f7890abcdef1234567890abcd",
+    "generated-at": "2026-07-10",
+    "start-vibe": "2026-06-18",
+    "project-name": "projectX",
+    "project-owner": "a-owner",
+    "support-contact": "app.owner@example.com",
+    "gcp-label-company": "acme",
+    "gcp-label-div": "operations",
+    "gcp-label-dept": "merchant-ops",
+    "project-scope": "internal",
+    "risk-level": "medium",
+    "project-status": "pending-approval",
+    "app-web-url": null,
+    "repo-url": "https://github.com/acme-org-ops/projectX",
+    "live-version": "1.4.0"
+  }
+}

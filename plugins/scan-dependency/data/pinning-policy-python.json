@@ -1,0 +1,47 @@
+{
+  "$schema": "../../schemas/pinning-policy.schema.json",
+  "version": "1.0.0",
+  "description": "Require Python dependency version specifiers (requirements.txt, pyproject.toml) to be pinned to an exact resolved version, not a floating range, unconstrained bare name, or unpinned git/URL ref.",
+  "appliesTo": "requirements.txt (including files recursively included via -r/-c) and pyproject.toml's [project.dependencies], [project.optional-dependencies.*], and Poetry's [tool.poetry.dependencies] / [tool.poetry.group.*.dependencies] — checked at add/bump time and on existing trees",
+  "policy": {
+    "onFloatingSpecifierFound": "reject",
+    "description": "A version specifier must resolve to exactly one immutable artifact: an exact PEP 440 version (==1.2.3 or ===1.2.3), a Poetry bare-string exact version, or a git/URL ref pinned to a commit SHA. Ranges, unconstrained bare names, and mutable refs are rejected.",
+    "rationale": "Python supply-chain attacks land the same way npm's do: an unconstrained or ranged specifier (a bare 'requests' with no operator, or '>=1.2.3') lets pip/Poetry silently resolve to whatever is newest at install time, including a newly compromised release. An exact pin means a compromised release sits unused until someone deliberately bumps the version, ideally through this plugin's OSV + license gate.",
+    "exceptions": "None by default. A temporary range must be documented in the PR and re-pinned before merge."
+  },
+  "classification": {
+    "pinned": [
+      "Exact PEP 440 version (package==1.2.3, prerelease/post/dev/local segments allowed)",
+      "Arbitrary equality (package===1.2.3)",
+      "Poetry bare exact version string (requests = \"1.2.3\")",
+      "git/hg ref with a commit SHA (7-40 hex chars) after '@'",
+      "URL requirement verified with --hash=sha256:... content pinning"
+    ],
+    "floating": [
+      "Bare package name with no version operator at all (unconstrained — the worst case, not a pass)",
+      "Comparator ranges (>=, <=, >, <, !=, ~=)",
+      "Multiple comma-separated specifiers, even if bounded both sides",
+      "== with a wildcard operand (package==1.2.*) — a prefix-match range despite the == operator",
+      "Poetry caret/tilde/wildcard/comparator ranges (^1.2.3, ~1.2.3, *, >=1.2.3)",
+      "git/hg/svn/bzr ref with a branch, tag, or no ref",
+      "Plain URL requirement with no VCS ref and no --hash",
+      "Editable installs of a VCS ref without a commit SHA (-e does not exempt VCS mutability)"
+    ],
+    "exemptPrefixes": {
+      "note": "Reported for awareness, never failed on — not fetched from a public registry the same way this policy's threat model targets.",
+      "forms": ["Local path requirement (./x, ../x, bare or -e)", "Poetry {path = \"...\"} dependency"]
+    },
+    "outOfScopeThisPass": "SVN/bzr numeric-revision pinning is not specially recognized; such refs are conservatively classified as floating unless they happen to look hex. poetry.lock is not parsed — manifests only."
+  },
+  "severity": {
+    "requirements": "HIGH",
+    "requirementsDev": "MEDIUM",
+    "pyprojectDependencies": "HIGH",
+    "pyprojectOptionalDependencies": "HIGH",
+    "poetryMain": "HIGH",
+    "poetryDevGroup": "MEDIUM",
+    "_devRequirementsFilenames": ["requirements-dev.txt", "dev-requirements.txt", "requirements/dev.txt", "requirements-test.txt", "test-requirements.txt", "requirements/test.txt"],
+    "_poetryDevGroupNames": ["dev", "test", "tests", "docs", "lint", "typing"]
+  },
+  "verdict": { "failOn": ["HIGH", "MEDIUM"], "warnOnly": ["INFORMATIONAL"] }
+}

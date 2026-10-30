@@ -1,0 +1,7 @@
+# Runtime caches (rule guidance, findings, tech stack)
+cache/findings/
+cache/techstack/
+cache/rules/*
+!cache/rules/.gitkeep
+
+scripts/__pycache__/

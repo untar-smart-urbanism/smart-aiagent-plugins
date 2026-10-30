@@ -1,0 +1,25 @@
+---
+description: GitHub repository setup for new projects — name, owner, private visibility.
+alwaysApply: false
+globs:
+  - "**/.git/**"
+  - "**/package.json"
+  - "**/README.md"
+---
+
+# GitHub repo setup
+
+Reference: `ops-github/data/github-policy.json`
+
+## New project (no origin remote)
+
+1. Ask repo name → validate with `check-repo-name.js`
+2. If name exists on GitHub → **stop** and ask user for another name
+3. Ask owner: individual account or organization (`list-owners.js`)
+4. Description: user input OR auto-generated from project
+5. Create **private** repo via `create-repo.js`
+6. If owner is an org → grant default teams from policy (`ACME OPS - READ-ONLY` read, `ACME OPS - VIBECODERS` write)
+
+## Existing project (origin configured)
+
+Do not create a new repo. Push only via `push-to-github` skill.

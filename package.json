@@ -1,0 +1,17 @@
+{
+  "name": "smart-aiagent-plugins",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Unified agent plugin marketplace for Cursor, Claude Code, and Codex",
+  "license": "Apache-2.0",
+  "scripts": {
+    "scaffold": "node scripts/scaffold-plugin.js",
+    "validate": "node scripts/validate-plugins.js",
+    "sync-marketplace": "node scripts/sync-marketplace.js",
+    "list": "node scripts/list-components.js",
+    "doctor": "node scripts/doctor.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

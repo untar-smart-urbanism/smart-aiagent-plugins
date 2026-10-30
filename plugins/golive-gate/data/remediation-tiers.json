@@ -1,0 +1,73 @@
+{
+  "title": "Remediation Backlog Tier Policy",
+  "source": "Non-Tech Change Management with AI Assistance Playbook — brownfield adoption of pre-existing projects",
+  "version": "1.0.0",
+  "backlogFile": {
+    "defaultPath": "docs/REMEDIATION.md",
+    "marker": "<!-- managed-by: adopt-vibe remediation-backlog v1 -->",
+    "pointerSection": "Security Notes",
+    "pointerPrefix": "Remediation backlog:",
+    "discoveryOrder": [
+      "Pointer line in PROJECT.md Security Notes (authoritative — records the path chosen at adoption time)",
+      "defaultPath whose first line is the marker",
+      "None found → create mode (adopt-vibe only)"
+    ],
+    "collisionAlternates": ["docs/REMEDIATION-BACKLOG.md", "docs/VIBE-REMEDIATION.md"]
+  },
+  "tiers": {
+    "BLOCKING": "Must reach status FIXED before check-golive-readiness may return READY. The agent never waives a BLOCKING item; a waiver requires a named Information Security sign-off recorded on the finding AND in PROJECT.md Review Evidence.",
+    "ADVISORY": "Legacy finding in pre-existing code: documented with a migration note, fixed during normal work, never blocks the gate. New or modified code must comply immediately — the always-on guardian rules are not relaxed."
+  },
+  "defaultTier": "BLOCKING",
+  "defaultTierNote": "Any finding type not mapped below is BLOCKING. Downgrades are made by editing this policy file, never ad hoc in a backlog.",
+  "sources": [
+    {
+      "audit": "code-review/audit-security",
+      "idPrefix": "SEC",
+      "map": [
+        { "finding": "hardcoded-secret", "match": "Hardcoded secret, credential, key, or token in code or git history", "tier": "BLOCKING" },
+        { "finding": "must-fix", "match": "Any must-fix (exploitable / OWASP violation) finding", "tier": "BLOCKING" },
+        { "finding": "should-fix", "match": "Should-fix hardening finding with no known exploit path", "tier": "ADVISORY" }
+      ]
+    },
+    {
+      "audit": "scan-dependency/scan-deps",
+      "idPrefix": "DEP",
+      "map": [
+        { "finding": "forbidden-license", "match": "License policy violation (forbidden or unresolvable license)", "tier": "BLOCKING" },
+        { "finding": "critical-vuln", "match": "OSV vulnerability rated critical, or any severity with known exploitation", "tier": "BLOCKING" },
+        { "finding": "other-vuln", "match": "OSV vulnerability below critical with no known exploitation", "tier": "ADVISORY", "note": "Upgrade during normal work; new dependencies are still rejected by check-dependency." }
+      ]
+    },
+    {
+      "audit": "tech-radar/check-stack",
+      "idPrefix": "STK",
+      "map": [
+        { "finding": "hold-tech-existing-code", "match": "Hold-ring or unlisted technology already present in pre-existing code", "tier": "ADVISORY", "note": "Legacy repos (Vibe Start before 2026-10-07) stay ADVISORY unless a major improvement (new module/service, DB migration, new frontend app, runtime/framework/ORM/DB swap, major upgrade) is in progress; then a tech-architect approval row in PROJECT.md ## Stack Exceptions is required. Migration note required. New code must not add or extend hold-ring technology." }
+      ]
+    },
+    {
+      "audit": "code-structure/check-structure",
+      "idPrefix": "STR",
+      "map": [
+        { "finding": "structure-violation", "match": "Any monorepo/frontend/backend structure violation", "tier": "ADVISORY", "note": "Fix opportunistically, or via /fix-structure when the owner schedules it." }
+      ]
+    },
+    {
+      "audit": "blu-design-system",
+      "idPrefix": "UI",
+      "map": [
+        { "finding": "non-blue-ui", "match": "UI not conforming to the Blu design system", "tier": "ADVISORY", "note": "New screens use @acme/rnd-svelte.* components themed with BLUE DLS design tokens (@acme/blue-design-tokens); legacy Vue repos use BLUE DLS Vue 3. BLUE UI guidance lives in the separate company BLUE marketplace." }
+      ]
+    },
+    {
+      "audit": "golive-gate/adoption-checks",
+      "idPrefix": "GLG",
+      "map": [
+        { "finding": "non-approved-auth", "match": "Login method other than Apps Gateway SSO or Company Google OAuth", "tier": "BLOCKING" },
+        { "finding": "non-company-storage", "match": "Code not hosted in the approved company org / approved platform", "tier": "BLOCKING" },
+        { "finding": "never-log-data", "match": "never-log.json data appearing in logs", "tier": "BLOCKING" }
+      ]
+    }
+  ]
+}

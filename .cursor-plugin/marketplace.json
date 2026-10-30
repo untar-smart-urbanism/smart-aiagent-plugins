@@ -1,0 +1,73 @@
+{
+  "name": "smart-aiagent-plugins",
+  "owner": {
+    "name": "Acme Corp",
+    "url": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+  },
+  "metadata": {
+    "description": "SMART-AIAGENT-PLUGINS — unified agent plugin marketplace for Cursor, Claude Code, and Codex.",
+    "license": "Apache-2.0"
+  },
+  "plugins": [
+    {
+      "name": "tech-radar",
+      "source": "./plugins/tech-radar",
+      "description": "Points to the company allowedStack (Bun, Elysia, Drizzle, PostgreSQL, Svelte, BLUE DLS design tokens), fills gaps the stack does not cover (messaging, search, cache, storage, logging, infra), and keeps the legacy ring for pre-2026-10-07 projects."
+    },
+    {
+      "name": "code-structure",
+      "source": "./plugins/code-structure",
+      "description": "Auto-resolves file placement in monorepo projects. Agents consult on every prompt; /check-structure and /fix-structure audit existing repos."
+    },
+    {
+      "name": "scan-dependency",
+      "source": "./plugins/scan-dependency",
+      "description": "Scan dependencies against OSV vulnerabilities and enforce company open-source license policy (Accepted / Accepted-with-Requirement / Forbidden) before adding packages"
+    },
+    {
+      "name": "code-review",
+      "source": "./plugins/code-review",
+      "description": "OWASP secure coding applied on every prompt automatically, plus GRC-informed design patterns (apply-security-patterns) for sensitive-data, auth, secret, and container/Pod hardening. /review-code and /audit-security for manual checks on existing projects."
+    },
+    {
+      "name": "ops-github",
+      "source": "./plugins/ops-github",
+      "description": "GitHub repos, SemVer version management, and auto-push. Bumps app versions before every push using Conventional Commits. Migrates existing repos from personal GitHub into the approved company org."
+    },
+    {
+      "name": "project-scaffold",
+      "source": "./plugins/project-scaffold",
+      "description": "Bootstraps and documents projects. Initializes a repo with mirrored CLAUDE.md/AGENTS.md, CONTEXT.md, a PROJECT.md go-live dossier, and a secure .gitignore, then generates comprehensive docs — including an IT design-review document (docs/DESIGN.md) with inline Mermaid diagrams (business workflow, architecture, sequence, transaction, and database-schema ER), a field-typed database schema, an external-connections inventory, and an on-demand PDF export — and completes the dossier. Adopts existing projects into the playbook via /adopt-vibe (baseline audits, remediation backlog, repo migration)."
+    },
+    {
+      "name": "golive-gate",
+      "source": "./plugins/golive-gate",
+      "description": "Risk classification and go-live gate per the Non-Tech Change Management playbook. Classifies tools Low/Medium/High, runs the risk-tiered release review checklist, and blocks go-live until approvals, access, and logging requirements in PROJECT.md are satisfied; SRE-owned backup status is an advisory follow-up. Gates go-live on open BLOCKING items in the adoption remediation backlog. Generates and runs test code for the scenario dossier with a bounded severity-driven fix loop. Emits a vibe-release.json release doc recording the gate verdict, cost labels, and app ownership for the evaluated commit. Checks the pipeline build contract via /vibe-conform — fixed command names, Build and run section, tracked coverage, hardened Dockerfile, and a gate record naming HEAD. Orchestrates delivery via /vibe-ship."
+    },
+    {
+      "name": "gcs-implementations",
+      "source": "./plugins/gcs-implementations",
+      "description": "Google Cloud Storage for app file/object storage — GCS_PROJECT_ID, GCS_BUCKET, GCS_FOLDER (default folder inside bucket), GKE Workload Identity Federation (WIF) without key files"
+    },
+    {
+      "name": "authn-implementations",
+      "source": "./plugins/authn-implementations",
+      "description": "Apps Gateway authn for downstream apps — X-User-Id identity, secure-by-default paths, /dangerously-skip-login for public routes, no custom login/sessions"
+    },
+    {
+      "name": "gcp-cost-estimator",
+      "source": "./plugins/gcp-cost-estimator",
+      "description": "Estimates GCP cost-component usage quantities (never prices) against the company billing SKU catalog — GKE, Cloud SQL PostgreSQL, Load Balancing, KMS, Artifact Registry, GCS. Reverse-engineers the repo, interviews the owner, verifies answers against code, and emits docs/COST-ESTIMATE.md + CSV with Staging and Production columns for finance."
+    },
+    {
+      "name": "sonar-issue-fixer",
+      "source": "./plugins/sonar-issue-fixer",
+      "description": "Fix SonarQube issues and check quality gate status against the OPS SonarQube server (platform-aware: acme:<app> keys, the platform-default gate, and Community Build default-branch scope)"
+    },
+    {
+      "name": "vibe-knowledge",
+      "source": "./plugins/vibe-knowledge",
+      "description": "Publish verified, sanitized learnings from one project chat to a review PR with one command; recall approved topic-indexed cards from a private repository."
+    }
+  ]
+}

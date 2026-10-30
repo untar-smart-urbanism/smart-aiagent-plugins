@@ -1,0 +1,33 @@
+{
+  "name": "scan-dependency",
+  "version": "1.4.0",
+  "description": "Scan dependencies against OSV vulnerabilities and enforce company open-source license policy (Accepted / Accepted-with-Requirement / Forbidden) before adding packages",
+  "author": {
+    "name": "Acme Corp"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "security",
+    "osv",
+    "vulnerabilities",
+    "license",
+    "dependencies",
+    "npm"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Scan Dependency",
+    "shortDescription": "Scan dependencies against OSV vulnerabilities and enforce company open-source license policy (Accepted / Accepted-with-R",
+    "longDescription": "Scan dependencies against OSV vulnerabilities and enforce company open-source license policy (Accepted / Accepted-with-Requirement / Forbidden) before adding packages",
+    "developerName": "Acme Corp",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Help me use Scan Dependency in this repository."
+    ]
+  }
+}

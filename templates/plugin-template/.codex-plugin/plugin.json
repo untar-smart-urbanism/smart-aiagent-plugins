@@ -1,0 +1,22 @@
+{
+  "name": "plugin-template",
+  "version": "1.0.0",
+  "description": "TODO: describe this plugin",
+  "author": {
+    "name": "Acme Corp",
+    "url": "https://github.com/acme-org-ops"
+  },
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "repository": "https://github.com/acme-org-ops/smart-aiagent-plugins",
+  "license": "Apache-2.0",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Plugin Template",
+    "shortDescription": "TODO: describe this plugin",
+    "longDescription": "TODO: describe this plugin",
+    "developerName": "Acme Corp",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive"],
+    "defaultPrompt": ["Help me use Plugin Template in this repository."]
+  }
+}

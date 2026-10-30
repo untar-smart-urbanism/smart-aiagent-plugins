@@ -1,0 +1,27 @@
+---
+description: When editing requirements.txt or pyproject.toml, verify new dependencies are exact-pinned (no unconstrained/floating specifiers) and pass OSV and 3-tier license policy checks.
+alwaysApply: false
+globs:
+  - "**/requirements*.txt"
+  - "**/pyproject.toml"
+---
+
+# Python dependency guard
+
+When adding or bumping a dependency in `requirements.txt` or `pyproject.toml`:
+
+1. Resolve the target **exact version**
+2. **Pin it** — no bare unconstrained package name, no comparator/caret/tilde ranges (`>=`, `<=`, `~=`, `^`, `*`), no wildcard (`==1.2.*`), and any git/URL ref must carry a commit SHA. Verify:
+   ```bash
+   node plugins/scan-dependency/scripts/check-pinned-versions.js <path> --ecosystem python
+   ```
+3. Check OSV: `POST https://api.osv.dev/v1/query` with `ecosystem: PyPI`
+4. Check license: PyPI's JSON API (`https://pypi.org/pypi/<pkg>/<version>/json`) → `info.license` or trove classifiers translated via `data/license-classifier-trove-map.json`
+5. Validate against `scan-dependency/data/`:
+   - `allowed-licenses.json` — Accepted
+   - `conditional-licenses.json` — Accepted with Requirement (document before merge)
+   - `forbidden-licenses.json` — Forbidden (reject)
+
+Do not commit `requirements.txt` / `pyproject.toml` changes until the version is exact-pinned, OSV passes, and license is Accepted or Accepted-with-Requirement (with requirements documented).
+
+After changes, run `node plugins/scan-dependency/scripts/check-pinned-versions.js . --ecosystem python`, then `scan-python-deps.js` or the `scan-dependencies` skill.

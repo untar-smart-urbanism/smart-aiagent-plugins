@@ -1,0 +1,40 @@
+---
+description: Use Google Cloud Storage for app file/object storage. Require GCS_PROJECT_ID, GCS_BUCKET, and GCS_FOLDER. Auth via ADC (GOOGLE_APPLICATION_CREDENTIALS or workload identity) with a lazy Storage singleton; WIF on GKE — no key files.
+alwaysApply: true
+---
+
+# GCS storage enforcement (always on)
+
+When an application needs **file or object storage** (uploads, downloads, persistent blobs), follow the `gcs-implementations` plugin.
+
+## Agent obligations
+
+1. **Read** skill `use-gcs-storage` and load `data/gcs-config.json`, `data/env-vars.json`.
+2. Use **Google Cloud Storage** — not local disk for durable uploads, not S3/Azure for new work unless user explicitly overrides.
+3. Require env vars for **project** (`GCS_PROJECT_ID`), **bucket** (`GCS_BUCKET`), and **folder** (`GCS_FOLDER`) — fill values in local `.env` / deploy config; placeholders in `.env.example`.
+4. **Store files under `GCS_FOLDER`** inside the bucket by default (`gs://GCS_BUCKET/GCS_FOLDER/...`). Apps may append further sub-paths within that folder.
+5. For auth: read skill `connect-gcs-wif` — use **Application Default Credentials** (`GOOGLE_APPLICATION_CREDENTIALS` or workload identity) with a **lazy Storage singleton on `globalThis`**. On GKE use **WIF** (KSA ↔ GSA) — **no key files**.
+
+Trigger when the user or feature involves uploads, downloads, buckets, object storage, or "GCS"/"S3"/file storage — even if they never name GCS.
+
+## Quick defaults
+
+| Item | Value |
+|------|-------|
+| Storage | Google Cloud Storage |
+| Docs | https://cloud.google.com/storage/docs |
+| App auth | ADC — `GOOGLE_APPLICATION_CREDENTIALS` or workload identity |
+| Client | Lazy `Storage` singleton on `globalThis` (`templates/gcs-client.ts`) |
+| Auth on GKE | WIF — see `data/wif-gke.json` |
+| Node client | `@google-cloud/storage` (check with `scan-dependency`) |
+
+## Forbidden
+
+- Service account JSON keys in git or as long-lived K8s secrets for GCS on GKE
+- Hardcoded bucket/project names in source
+- Skipping `.env.example` updates for `GCS_PROJECT_ID`, `GCS_BUCKET`, or `GCS_FOLDER`
+- Inventing multiple bucket env vars (`GCS_BUCKET_UPLOADS`, etc.) unless the user explicitly needs more than one bucket
+
+## On violation
+
+Stop, explain, and switch to GCS + WIF + env-based bucket/project config before continuing.

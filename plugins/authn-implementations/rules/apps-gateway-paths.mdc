@@ -1,0 +1,25 @@
+---
+description: Path and navigation rules for Apps Gateway — reserved /auth and /actuator, public /dangerously-skip-login, full-page auth navigation.
+alwaysApply: false
+globs:
+  - "**/apps/frontend/**"
+  - "**/apps/backend/**"
+  - "**/routes/**"
+  - "**/router/**"
+  - "**/*route*.*"
+  - "**/*Router*.*"
+---
+
+# Apps Gateway paths & navigation
+
+When editing routes or SPA routers:
+
+1. Load `authn-implementations/data/paths.json`
+2. Do **not** register `/auth/**` or `/actuator/**` as app routes
+3. Put the app's **own** anonymous endpoints under `/dangerously-skip-login/**` only
+4. The four **gateway probe paths** — exact `/health`, `/api/health`, `/version`, `/api/version` — are
+   the exception: implement them at the root, unauthenticated, reading no identity. The gateway routes
+   them directly to the app by design, so they are never a path violation. Non-default probe paths go
+   in `.platform/observability.yaml`.
+5. Use `window.location.assign` (or plain `<a href>`) for `/auth/ui/login` and `/auth/logout` — never `router.push` / framework `<Link>` for those paths
+6. Prefer `/dev-login` for local mock login (see skill `local-authn-dev`)

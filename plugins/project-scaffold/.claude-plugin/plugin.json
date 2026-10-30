@@ -1,0 +1,10 @@
+{
+  "name": "project-scaffold",
+  "description": "Bootstraps and documents projects. Initializes a repo with mirrored CLAUDE.md/AGENTS.md, CONTEXT.md, a PROJECT.md go-live dossier, and a secure .gitignore, then generates comprehensive docs — including an IT design-review document (docs/DESIGN.md) with inline Mermaid diagrams (business workflow, architecture, sequence, transaction, and database-schema ER), a field-typed database schema, an external-connections inventory, and an on-demand PDF export — and completes the dossier. Adopts existing projects into the playbook via /adopt-vibe (baseline audits, remediation backlog, repo migration).",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.15.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}

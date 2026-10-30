@@ -1,0 +1,24 @@
+{
+  "version": "1.1.0",
+  "description": "Two layers of authorization for apps behind Apps Gateway.",
+  "gatewayLayer": {
+    "name": "Who may enter the app",
+    "modes": {
+      "WHITELIST": "Default — only owners + access-list emails",
+      "EVERYONE": "Any logged-in user"
+    },
+    "deniedResponse": "403 — request never reaches the app",
+    "managedAt": "/auth/ui/apps",
+    "managedBy": "DevOps or an authorized app owner in the console. NEVER changed by an agent or by these plugins — the access mode decides who may enter the application. Report the intended value and who must apply it; never apply it yourself (see apps-gateway.json registration.performedBy).",
+    "appDoesNotImplement": true
+  },
+  "appLayer": {
+    "name": "Finer roles/permissions inside the app",
+    "keyBy": "email from X-User-Id",
+    "notes": [
+      "Gateway admin flag from /auth/api/me is for gateway account/app-management — do not repurpose as app role",
+      "Maintain user → roles in the app database",
+      "Enforce in app code"
+    ]
+  }
+}

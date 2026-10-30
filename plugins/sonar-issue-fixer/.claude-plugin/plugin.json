@@ -1,0 +1,10 @@
+{
+  "name": "sonar-issue-fixer",
+  "description": "Fix SonarQube issues and check quality gate status against the OPS SonarQube server (platform-aware: acme:<app> keys, the platform-default gate, and Community Build default-branch scope)",
+  "author": {
+    "name": "Acme Corp",
+    "email": "plugins@yourcompany.com"
+  },
+  "version": "1.2.0",
+  "homepage": "https://github.com/acme-org-ops/smart-aiagent-plugins"
+}
